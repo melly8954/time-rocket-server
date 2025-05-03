@@ -6,7 +6,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
+    // 닉네임이 존재하는지 여부
     boolean existsByNickname(String nickname);
+    // Email 또는 Nickname 로 UserEntity 찾기
     UserEntity findByEmailOrNickname(String email, String nickname);
+    // Email 로 UserEntity 찾기
     UserEntity findByEmail(String email);
 }
