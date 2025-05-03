@@ -34,7 +34,7 @@ public class MailServiceImpl implements IMailService {
     private final PasswordEncoder passwordEncoder;
     private final JavaMailSender javaMailSender;
     private static final String senderEmail = "rkwhr8963@gmail.com";
-    private static final Map<String, Integer> emailCodeMap = new HashMap<>();
+    private static final Map<String, String> emailCodeMap = new HashMap<>();
     private static final Map<String, TempPasswordEntry> tempPasswordMap = new ConcurrentHashMap<>();
 
     private static class TempPasswordEntry {
@@ -46,9 +46,23 @@ public class MailServiceImpl implements IMailService {
         }
     }
 
+    // 8자리 랜덤 코드 생성, static 메서드는 인스턴스(객체)를 생성하지 않아도 호출할 수 있는 메서드
+    private static String generateRandomCode() {
+        int length = 8;
+        StringBuilder sb = new StringBuilder(length);
+        Random random = new Random();
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+        for (int i = 0; i < length; i++) {
+            sb.append(characters.charAt(random.nextInt(characters.length())));
+        }
+        return sb.toString();
+    }
+
     @Override
     public MimeMessage createMail(String email){
-        createNumber(email);    // 객체 생성없이 호출
+        String code = generateRandomCode();    // 객체 생성없이 8자리 랜덤 인증번호 생성
+        emailCodeMap.put(email, code);  // 이메일과 인증번호 저장
         MimeMessage message = javaMailSender.createMimeMessage();
 
         try {
@@ -65,15 +79,10 @@ public class MailServiceImpl implements IMailService {
 
         return message;
     }
-    // 랜덤 인증코드 생성, static 메서드는 인스턴스(객체)를 생성하지 않아도 호출할 수 있는 메서드
-    private  static void createNumber(String email){
-        int number = new Random().nextInt(900000) + 100000; // 100000-999999 사이의 숫자 생성
-        emailCodeMap.put(email, number);
-    }
 
     @Async
     @Override
-    public CompletableFuture<Integer> sendMail(EmailRequest emailRequest) {
+    public CompletableFuture<String> sendMail(EmailRequest emailRequest) {
         String email = emailRequest.getEmail();
         MimeMessage message = createMail(email);
         javaMailSender.send(message);
@@ -83,14 +92,14 @@ public class MailServiceImpl implements IMailService {
     @Override
     public boolean verifyCode(EmailVerificationRequest emailVerificationRequest) {
         String email = emailVerificationRequest.getEmail();
-        int inputCode  = emailVerificationRequest.getCode();
-        Integer storedCode = emailCodeMap.get(email);
-        return storedCode != null && storedCode == inputCode ;
+        String inputCode  = emailVerificationRequest.getCode();
+        String storedCode = emailCodeMap.get(email);
+        return storedCode != null && storedCode.equals(inputCode);
     }
 
     @Override
     public String createTemporaryPassword(String email) {
-        String tempPassword = generateRandomPassword();
+        String tempPassword = generateRandomCode();
         UserEntity user = userRepository.findByEmail(email);
         if (user == null) {
             throw new IllegalArgumentException("해당 회원은 존재하지 않습니다.");
@@ -98,23 +107,10 @@ public class MailServiceImpl implements IMailService {
         return tempPassword;
     }
 
-    // 임시 비밀번호 생성
-    private static String generateRandomPassword() {
-        int length = 8;
-        StringBuilder sb = new StringBuilder(length);
-        Random random = new Random();
-        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-        for (int i = 0; i < length; i++) {
-            sb.append(characters.charAt(random.nextInt(characters.length())));
-        }
-        return sb.toString();
-    }
-
     @Override
     public void sendTemporaryPasswordMail(String email, String ignoredTempPassword) {
         // 새 임시 비밀번호 생성 및 Map 저장
-        String tempPassword = generateRandomPassword();
+        String tempPassword = generateRandomCode();
         long expireTime = System.currentTimeMillis() + 10 * 60 * 1000; // 10분
         tempPasswordMap.put(email, new TempPasswordEntry(tempPassword, expireTime));
 

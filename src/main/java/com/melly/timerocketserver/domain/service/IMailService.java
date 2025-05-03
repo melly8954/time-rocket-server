@@ -11,7 +11,7 @@ public interface IMailService {
     // 이메일로 전송할 내용 생성
     MimeMessage createMail(String email);
     // createMail() 메서드의 내용을 이메일 전송
-    CompletableFuture<Integer> sendMail(EmailRequest emailRequest);
+    CompletableFuture<String> sendMail(EmailRequest emailRequest);
     // 이메일 인증 코드 검증
     boolean verifyCode(EmailVerificationRequest emailVerificationRequest);
 
