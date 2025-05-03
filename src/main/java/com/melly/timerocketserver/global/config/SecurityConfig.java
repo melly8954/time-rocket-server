@@ -8,6 +8,9 @@ import com.melly.timerocketserver.global.jwt.JwtUtil;
 import com.melly.timerocketserver.global.jwt.RefreshRepository;
 import com.melly.timerocketserver.global.security.CustomLoginFilter;
 import com.melly.timerocketserver.global.security.CustomLogoutFilter;
+import com.melly.timerocketserver.global.security.oauth.CustomOAuth2UserService;
+import com.melly.timerocketserver.global.security.oauth.CustomOAuthSuccessHandler;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +23,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -28,13 +35,17 @@ public class SecurityConfig {
     private final AuthenticationConfiguration authenticationConfiguration;
     private final UserRepository userRepository;
     private final RefreshRepository refreshRepository;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomOAuthSuccessHandler customOAuthSuccessHandler;
 
     public SecurityConfig(UserRepository userRepository, RefreshRepository refreshRepository, AuthenticationConfiguration authenticationConfiguration,
-                          JwtUtil jwtUtil) {
+                          JwtUtil jwtUtil, CustomOAuth2UserService customOAuth2UserService, CustomOAuthSuccessHandler customOAuthSuccessHandler) {
         this.userRepository = userRepository;
         this.refreshRepository = refreshRepository;
         this.authenticationConfiguration = authenticationConfiguration;
         this.jwtUtil = jwtUtil;
+        this.customOAuth2UserService = customOAuth2UserService;
+        this.customOAuthSuccessHandler = customOAuthSuccessHandler;
     }
 
     @Bean
@@ -81,11 +92,36 @@ public class SecurityConfig {
         http
                 .addFilterBefore(new CustomLogoutFilter(jwtUtil, refreshRepository), LogoutFilter.class);
 
+        // oauth2
+        http
+                .oauth2Login((oauth2) -> oauth2
+                        .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
+                                .userService(customOAuth2UserService))
+                        .successHandler(customOAuthSuccessHandler));
+
         // JWT를 통한 인증/인가를 위해서 세션을 STATELESS 상태로 설정하는 것이 중요하다.
         // 서버가 세션을 생성하지 않고, 클라이언트의 요청의 헤더에 포함된 JWT 토큰을 통해 인증을 처리한다.
         http.
                 sessionManagement((session) -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        // 교차 출처 리소스 공유(CORS 요청 허용)
+        http
+                .cors((corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
+
+                    @Override
+                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                        CorsConfiguration configuration = new CorsConfiguration();
+                        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));    // 프론트 서버
+                        configuration.setAllowedMethods(Collections.singletonList("*"));
+                        configuration.setAllowCredentials(true);
+                        configuration.setAllowedHeaders(Collections.singletonList("*"));
+                        configuration.setMaxAge(3600L);
+                        configuration.setExposedHeaders(Collections.singletonList("Authorization"));
+                        return configuration;
+                    }
+                })));
+
         return http.build();
     }
 }
