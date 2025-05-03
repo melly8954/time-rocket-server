@@ -21,6 +21,8 @@ import java.io.PrintWriter;
 // 요청이 들어올 때마다 실행되며, 유효한 Access Token 이 포함되어 있는지 확인하고, 있다면 이를 기반으로 SecurityContext 에 인증 정보를 등록
 @Slf4j
 public class JwtFilter extends OncePerRequestFilter {
+    // OncePerRequestFilter 는 Spring Framework 에서 제공하는 추상 클래스로, 하나의 요청(request)당 딱 한 번만 실행되는 필터
+    // JWT 검증 로직은 인증이 필요한 요청이 들어올 때마다 확실히 한 번만 실행되도록 보장
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
 
