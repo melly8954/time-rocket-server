@@ -8,7 +8,8 @@ import com.melly.timerocketserver.global.jwt.JwtUtil;
 import com.melly.timerocketserver.global.jwt.RefreshRepository;
 import com.melly.timerocketserver.global.security.CustomLoginFilter;
 import com.melly.timerocketserver.global.security.CustomLogoutFilter;
-import com.melly.timerocketserver.global.security.oauth.CustomOAuth2UserService;
+import com.melly.timerocketserver.global.security.oauth.CustomOAuthFailureHandler;
+import com.melly.timerocketserver.global.security.oauth.CustomOAuthUserService;
 import com.melly.timerocketserver.global.security.oauth.CustomOAuthSuccessHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
@@ -35,17 +36,20 @@ public class SecurityConfig {
     private final AuthenticationConfiguration authenticationConfiguration;
     private final UserRepository userRepository;
     private final RefreshRepository refreshRepository;
-    private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomOAuthUserService customOAuthUserService;
     private final CustomOAuthSuccessHandler customOAuthSuccessHandler;
+    private final CustomOAuthFailureHandler customOAuthFailureHandler;
 
     public SecurityConfig(UserRepository userRepository, RefreshRepository refreshRepository, AuthenticationConfiguration authenticationConfiguration,
-                          JwtUtil jwtUtil, CustomOAuth2UserService customOAuth2UserService, CustomOAuthSuccessHandler customOAuthSuccessHandler) {
+                          JwtUtil jwtUtil, CustomOAuthUserService customOAuth2UserService, CustomOAuthSuccessHandler customOAuthSuccessHandler,
+                          CustomOAuthFailureHandler customOAuthFailureHandler) {
         this.userRepository = userRepository;
         this.refreshRepository = refreshRepository;
         this.authenticationConfiguration = authenticationConfiguration;
         this.jwtUtil = jwtUtil;
-        this.customOAuth2UserService = customOAuth2UserService;
+        this.customOAuthUserService = customOAuth2UserService;
         this.customOAuthSuccessHandler = customOAuthSuccessHandler;
+        this.customOAuthFailureHandler = customOAuthFailureHandler;
     }
 
     @Bean
@@ -96,8 +100,9 @@ public class SecurityConfig {
         http
                 .oauth2Login((oauth2) -> oauth2
                         .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
-                                .userService(customOAuth2UserService))
-                        .successHandler(customOAuthSuccessHandler));
+                                .userService(customOAuthUserService))
+                        .successHandler(customOAuthSuccessHandler)
+                        .failureHandler(customOAuthFailureHandler));
 
         // JWT를 통한 인증/인가를 위해서 세션을 STATELESS 상태로 설정하는 것이 중요하다.
         // 서버가 세션을 생성하지 않고, 클라이언트의 요청의 헤더에 포함된 JWT 토큰을 통해 인증을 처리한다.

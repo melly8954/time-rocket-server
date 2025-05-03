@@ -11,13 +11,14 @@ import com.melly.timerocketserver.domain.repository.UserRepository;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 @Service
-public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+public class CustomOAuthUserService extends DefaultOAuth2UserService {
     private UserRepository userRepository;
-    public CustomOAuth2UserService(UserRepository userRepository) {
+    public CustomOAuthUserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
@@ -56,7 +57,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .providerId(providerId)
                     .build();
             userRepository.save(user);
+        }else{
+            // 이미 가입된 사용자인데, provider 가 다르면 예외 발생
+            if (user.getProvider() == null || !user.getProvider().equals(provider)) {
+                throw new OAuth2AuthenticationException(
+                        new OAuth2Error("provider_mismatch", "기존 계정이 이미 다른 로그인 방식으로 가입되어 있습니다. 일반 로그인을 이용해주세요.", null)
+                );
+            }
         }
+
         return new CustomUserDetails(user, oAuth2User.getAttributes());
     }
 }
