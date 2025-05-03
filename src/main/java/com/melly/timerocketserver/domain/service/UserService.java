@@ -33,7 +33,7 @@ public class UserService {
         if(userRepository.existsByEmail(signUpRequestDto.getEmail())) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
-        // 이메일 중복 검사
+        // 닉네임 중복 검사
         if(userRepository.existsByNickname(signUpRequestDto.getNickname())) {
             throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
         }
@@ -73,5 +73,10 @@ public class UserService {
         }else {
             throw new UserNotFoundException("해당 회원은 존재하지 않습니다.");
         }
+    }
+
+    // 이메일 중복 여부 확인
+    public boolean isEmailExist(String email) {
+        return userRepository.existsByEmail(email);
     }
 }
