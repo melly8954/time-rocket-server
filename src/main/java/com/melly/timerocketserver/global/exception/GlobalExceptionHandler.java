@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @Slf4j
-@ControllerAdvice
+@ControllerAdvice   // 컨트롤러 실행 중 발생하는 예외를 잡음, 모든 요청에서 가로챔
 public class GlobalExceptionHandler implements ResponseController {
 
     @ExceptionHandler(IllegalArgumentException.class)

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
+// Spring Security 인증 과정에서 사용자 정보를 나타내는 객체
 @Getter
 public class CustomUserDetails implements UserDetails, OAuth2User {
     private final UserEntity userEntity;
