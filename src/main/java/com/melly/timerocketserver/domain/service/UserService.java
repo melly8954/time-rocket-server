@@ -61,7 +61,7 @@ public class UserService {
         if(user != null){
             return user;
         }else{
-            throw new UserNotFoundException("User not found");
+            throw new UserNotFoundException("해당 회원은 존재하지 않습니다.");
         }
     }
 
@@ -71,7 +71,7 @@ public class UserService {
         if(user != null){
             return user;
         }else {
-            throw new UserNotFoundException("User not found");
+            throw new UserNotFoundException("해당 회원은 존재하지 않습니다.");
         }
     }
 }
