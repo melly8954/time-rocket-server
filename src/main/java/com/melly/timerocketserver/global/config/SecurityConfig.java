@@ -1,19 +1,43 @@
 package com.melly.timerocketserver.global.config;
 
+import com.melly.timerocketserver.domain.repository.UserRepository;
+import com.melly.timerocketserver.global.jwt.JwtUtil;
+import com.melly.timerocketserver.global.jwt.RefreshRepository;
+import com.melly.timerocketserver.global.security.CustomLoginFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private final JwtUtil jwtUtil;
+    private final AuthenticationConfiguration authenticationConfiguration;
+    private final RefreshRepository refreshRepository;
+
+    public SecurityConfig(RefreshRepository refreshRepository, AuthenticationConfiguration authenticationConfiguration,
+                          JwtUtil jwtUtil) {
+        this.refreshRepository = refreshRepository;
+        this.authenticationConfiguration = authenticationConfiguration;
+        this.jwtUtil = jwtUtil;
+    }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean   // Spring Security 에서 인증을 처리하는 핵심 객체로, 사용자가 제공한 자격 증명(예: 아이디, 비밀번호)을 기반으로 인증을 수행
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
@@ -30,6 +54,17 @@ public class SecurityConfig {
                                 "/api/users/logout","/api/users/duplicate-nickname/**").permitAll()
                         .requestMatchers("/api/admins/**").hasRole("ADMIN")
                         .anyRequest().authenticated());
+
+        // 필터 추가 (UsernamePasswordAuthenticationFilter 를 CustomLoginFilter 로 갈음)
+        // CustomLoginFilter()는 인자를 받음 (AuthenticationManager() 메소드에 authenticationConfiguration 객체를 넣어야 함) 따라서 등록 필요
+        http
+                .addFilterAt(new CustomLoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshRepository), UsernamePasswordAuthenticationFilter.class);
+
+        // JWT를 통한 인증/인가를 위해서 세션을 STATELESS 상태로 설정하는 것이 중요하다.
+        // 서버가 세션을 생성하지 않고, 클라이언트의 요청의 헤더에 포함된 JWT 토큰을 통해 인증을 처리한다.
+        http.
+                sessionManagement((session) -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();
     }
 }
