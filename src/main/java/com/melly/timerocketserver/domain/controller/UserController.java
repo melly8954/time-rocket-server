@@ -5,10 +5,13 @@ import com.melly.timerocketserver.global.common.ResponseDto;
 import com.melly.timerocketserver.domain.dto.request.SignUpRequestDto;
 import com.melly.timerocketserver.domain.service.UserService;
 import com.melly.timerocketserver.global.jwt.RefreshService;
+import com.melly.timerocketserver.global.security.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,5 +42,22 @@ public class UserController implements ResponseController {
     public ResponseEntity<ResponseDto> refreshToken(HttpServletRequest request, HttpServletResponse response) {
         this.refreshService.reissueToken(request,response);
         return makeResponseEntity(HttpStatus.CREATED, "refresh_token 재발급", null);
+    }
+
+    @GetMapping("/users/profile")
+    public ResponseEntity<ResponseDto> getUserInfo() {
+        // SecurityContextHolder 에서 인증 정보를 가져옴
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        // 인증되지 않은 경우
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return makeResponseEntity(HttpStatus.UNAUTHORIZED, "사용자 인증이 필요합니다.", null);
+        }
+
+        // 인증된 사용자 정보 추출
+        CustomUserDetails principal = (CustomUserDetails) authentication.getPrincipal();
+
+        // 사용자 정보와 함께 응답 반환
+        return makeResponseEntity(HttpStatus.OK, "사용자 인증 완료", principal.getUser());
     }
 }
