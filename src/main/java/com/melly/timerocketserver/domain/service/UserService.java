@@ -2,6 +2,7 @@ package com.melly.timerocketserver.domain.service;
 
 import com.melly.timerocketserver.domain.dto.request.PasswordRequestDto;
 import com.melly.timerocketserver.domain.dto.request.SignUpRequestDto;
+import com.melly.timerocketserver.domain.dto.request.UpdateStatusRequestDto;
 import com.melly.timerocketserver.domain.entity.Role;
 import com.melly.timerocketserver.domain.entity.Status;
 import com.melly.timerocketserver.domain.entity.UserEntity;
@@ -92,6 +93,23 @@ public class UserService {
             throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
         }
         userEntity.setPassword(passwordEncoder.encode(newPassword));
+        this.userRepository.save(userEntity);
+    }
+
+    public void updateStatus(Long userId, UpdateStatusRequestDto updateStatusRequestDto) {
+        UserEntity userEntity = this.userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("해당 회원은 존재하지 않습니다."));
+
+        String newStatus = updateStatusRequestDto.getStatus();
+        // status 값에 따라서 처리하는 로직
+        if ("DELETED".equals(newStatus)) {
+            userEntity.setStatus(Status.DELETED);
+        } else if ("INACTIVE".equals(newStatus)) {
+            userEntity.setStatus(Status.INACTIVE);
+        } else if ("ACTIVE".equals(newStatus)) {
+            userEntity.setStatus(Status.ACTIVE);
+        } else{
+            throw new IllegalArgumentException("잘못된 상태 변경값입니다.");
+        }
         this.userRepository.save(userEntity);
     }
 }
