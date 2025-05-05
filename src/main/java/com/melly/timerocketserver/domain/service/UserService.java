@@ -1,5 +1,6 @@
 package com.melly.timerocketserver.domain.service;
 
+import com.melly.timerocketserver.domain.dto.request.PasswordRequestDto;
 import com.melly.timerocketserver.domain.dto.request.SignUpRequestDto;
 import com.melly.timerocketserver.domain.entity.Role;
 import com.melly.timerocketserver.domain.entity.Status;
@@ -78,5 +79,19 @@ public class UserService {
     // 이메일 중복 여부 확인
     public boolean isEmailExist(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    // 비밀번호 변경
+    public void updatePassword(Long userId, PasswordRequestDto passwordRequestDto) {
+        String currentPassword = passwordRequestDto.getCurrentPassword();
+        String newPassword = passwordRequestDto.getNewPassword();
+
+        UserEntity userEntity = this.userRepository.findById(userId).orElseThrow(()-> new UserNotFoundException("해당 회원은 존재하지 않습니다."));
+
+        if(!passwordEncoder.matches(currentPassword,userEntity.getPassword())){
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        }
+        userEntity.setPassword(passwordEncoder.encode(newPassword));
+        this.userRepository.save(userEntity);
     }
 }

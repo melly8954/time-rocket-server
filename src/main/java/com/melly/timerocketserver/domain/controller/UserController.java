@@ -1,5 +1,6 @@
 package com.melly.timerocketserver.domain.controller;
 
+import com.melly.timerocketserver.domain.dto.request.PasswordRequestDto;
 import com.melly.timerocketserver.global.common.ResponseController;
 import com.melly.timerocketserver.global.common.ResponseDto;
 import com.melly.timerocketserver.domain.dto.request.SignUpRequestDto;
@@ -59,5 +60,11 @@ public class UserController implements ResponseController {
 
         // 사용자 정보와 함께 응답 반환
         return makeResponseEntity(HttpStatus.OK, "사용자 인증 완료", principal.getUser());
+    }
+
+    @PatchMapping("/users/{userId}/password")
+    public ResponseEntity<ResponseDto> updatePassword(@PathVariable Long userId, @RequestBody PasswordRequestDto passwordRequestDto){
+        this.userService.updatePassword(userId, passwordRequestDto);
+        return makeResponseEntity(HttpStatus.OK, "비밀번호 변경 완료", null);
     }
 }
