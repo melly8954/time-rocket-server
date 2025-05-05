@@ -37,7 +37,7 @@ public class UserService {
         }
         // 닉네임 중복 검사
         if(userRepository.existsByNickname(signUpRequestDto.getNickname())) {
-            throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
+            throw new DuplicateNicknameException("이미 존재하는 닉네임입니다.");
         }
         UserEntity userEntity = UserEntity.builder()
                 .email(signUpRequestDto.getEmail())
