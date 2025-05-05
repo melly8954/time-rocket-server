@@ -9,6 +9,7 @@ import com.melly.timerocketserver.global.jwt.RefreshService;
 import com.melly.timerocketserver.global.security.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.Min;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -16,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+@Validated  // @Validated 로 메서드 파라미터 (@PathVariable, @RequestParam)에 직접 붙은 제약을 검사
 @RestController
 @RequestMapping("/api")
 public class UserController implements ResponseController {
@@ -27,6 +29,7 @@ public class UserController implements ResponseController {
         this.refreshService = refreshService;
     }
 
+    // @Validated 로 DTO 필드 검사
     @PostMapping("/users")
     public ResponseEntity<ResponseDto> signUp(@RequestBody @Validated SignUpRequestDto signUpRequestDto) {
         this.userService.signUp(signUpRequestDto);  // 예외가 터지면 GlobalExceptionHandler 가 받음
@@ -63,8 +66,11 @@ public class UserController implements ResponseController {
     }
 
     @PatchMapping("/users/{userId}/password")
-    public ResponseEntity<ResponseDto> updatePassword(@PathVariable Long userId, @RequestBody PasswordRequestDto passwordRequestDto){
+    public ResponseEntity<ResponseDto> updatePassword(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
+                                                      @RequestBody PasswordRequestDto passwordRequestDto){
         this.userService.updatePassword(userId, passwordRequestDto);
         return makeResponseEntity(HttpStatus.OK, "비밀번호 변경 완료", null);
     }
+
+
 }
