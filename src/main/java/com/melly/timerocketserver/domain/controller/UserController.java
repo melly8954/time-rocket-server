@@ -1,6 +1,7 @@
 package com.melly.timerocketserver.domain.controller;
 
 import com.melly.timerocketserver.domain.dto.request.PasswordRequestDto;
+import com.melly.timerocketserver.domain.dto.request.UpdateStatusRequestDto;
 import com.melly.timerocketserver.global.common.ResponseController;
 import com.melly.timerocketserver.global.common.ResponseDto;
 import com.melly.timerocketserver.domain.dto.request.SignUpRequestDto;
@@ -72,5 +73,12 @@ public class UserController implements ResponseController {
         return makeResponseEntity(HttpStatus.OK, "비밀번호 변경 완료", null);
     }
 
-
+    // 계정 탈퇴 버튼을 누를 경우 요청
+    @PatchMapping("/users/{userId}/status")
+    public ResponseEntity<ResponseDto> updateStatus(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
+                                                    @RequestBody UpdateStatusRequestDto updateStatusRequestDto){
+        // 회원 탈퇴 (status = DELETED) 요청
+        this.userService.updateStatus(userId, updateStatusRequestDto);
+        return makeResponseEntity(HttpStatus.OK, "회원 상태가 변경되었습니다.", null);
+    }
 }
