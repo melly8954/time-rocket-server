@@ -16,6 +16,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -51,7 +52,7 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
 
     // 로그인 성공시 실행하는 메소드 (여기서 JWT를 발급하면 됨)
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) {
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException {
         // 유저 정보
         String username = authentication.getName();
 
@@ -64,6 +65,12 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
         String access = jwtUtil.createJwt("access", username, role, 600000L); // 10분
         response.setHeader("Authorization", access);
         response.setStatus(HttpStatus.OK.value());
+        // 로그인 성공시 JSON 응답 작성
+        String jsonResponse = "{\n"
+                + "\"code\": 200,\n"
+                + "\"message\": \"로그인 성공\",\n"
+                + "\"data\": "+ access + "\n}";
+        response.getWriter().write(jsonResponse);
         log.info("Access Token 생성 성공");
 
         // rememberMe 여부 확인
