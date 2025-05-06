@@ -37,14 +37,14 @@ public class UserEntity {
         return status.getDescription();
     }
 
-    @Column(name="created_date")
-    private LocalDateTime createdDate;
+    @Column(name="created_at")
+    private LocalDateTime createdAt;
 
-    @Column(name="updated_date")
-    private LocalDateTime updatedDate;
+    @Column(name="updated_at")
+    private LocalDateTime updatedAt;
 
-    @Column(name="deleted_date")
-    private LocalDateTime deletedDate;
+    @Column(name="deleted_at")
+    private LocalDateTime deletedAt;
 
     private String provider;
     @Column(name="provider_id")
@@ -52,12 +52,12 @@ public class UserEntity {
 
     @PrePersist
     public void prePersist() {
-        this.createdDate = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
     }
 
     @PreUpdate
     public void preUpdate() {
-        this.updatedDate = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
 }
