@@ -68,7 +68,7 @@ public class UserController implements ResponseController {
 
     @PatchMapping("/users/{userId}/password")
     public ResponseEntity<ResponseDto> updatePassword(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
-                                                      @RequestBody PasswordRequestDto passwordRequestDto){
+                                                      @RequestBody @Validated PasswordRequestDto passwordRequestDto){
         this.userService.updatePassword(userId, passwordRequestDto);
         return makeResponseEntity(HttpStatus.OK, "비밀번호 변경 완료", null);
     }
