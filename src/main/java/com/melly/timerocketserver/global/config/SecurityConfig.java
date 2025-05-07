@@ -72,7 +72,7 @@ public class SecurityConfig {
                 .httpBasic((auth) -> auth.disable());       // JWT를 사용하면 클라이언트는 직접 로그인 폼을 사용하지 않고, 토큰을 통해 인증을 진행하기때문에 비활성화
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/","/api/users","/api/users/login","/api/users/logout",
+                        .requestMatchers("/","/api/users","/api/users/login","/api/users/logout","/api/tokens/refresh",
                                 "/api/users/duplicate-nickname/**","/api/users/profile","/api/emails/**").permitAll()
                         .requestMatchers("/api/admins/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
