@@ -61,9 +61,8 @@ public class MailServiceImpl implements IMailService {
     public CompletableFuture<String> sendMail(EmailRequest emailRequest) {
         String email = emailRequest.getEmail();
         try {
-            if (!userRepository.existsByEmail(email)) {
-                // 비동기 전송으로인해 UserNotFoundException 이 발생했을 때, CompletableFuture 실패로 처리
-                return CompletableFuture.failedFuture(new UserNotFoundException("해당 이메일로 가입된 사용자가 없습니다."));
+            if (userRepository.existsByEmail(email)) {
+                return CompletableFuture.failedFuture(new IllegalArgumentException("이미 가입된 이메일입니다."));
             }
             // 이메일 인증코드를 포함한 메일을 생성
             MimeMessage message = createMail(email);
