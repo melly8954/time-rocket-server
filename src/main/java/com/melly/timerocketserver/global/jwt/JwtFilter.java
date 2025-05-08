@@ -52,15 +52,12 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 토큰 만료 여부 확인, 만료시 다음 필터로 넘기지 않음
-        try {
-            jwtUtil.isExpired(accessToken);     // 토큰이 만료가 되었다면 예외가 발생하여 아래 로직으로 넘어간다.
-        } catch (ExpiredJwtException e) {
+        // 토큰 만료 여부 확인
+        if (jwtUtil.isExpired(accessToken)) {
             log.error("Expired JWT token");
 
-            // 401 응답은 그대로 주되, 프론트가 인식할 수 있도록
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            filterChain.doFilter(request, response); // 필터 체인 계속 진행 (중단 X)
+            filterChain.doFilter(request, response); // 필터 체인은 그대로 진행 (다음 필터에서 처리할 수 있게)
             return;
         }
 

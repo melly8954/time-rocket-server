@@ -1,6 +1,8 @@
 package com.melly.timerocketserver.domain.service;
 
+import com.melly.timerocketserver.domain.dto.request.PasswordRequestDto;
 import com.melly.timerocketserver.domain.dto.request.SignUpRequestDto;
+import com.melly.timerocketserver.domain.dto.request.UpdateStatusRequestDto;
 import com.melly.timerocketserver.domain.entity.Role;
 import com.melly.timerocketserver.domain.entity.Status;
 import com.melly.timerocketserver.domain.entity.UserEntity;
@@ -35,7 +37,7 @@ public class UserService {
         }
         // 닉네임 중복 검사
         if(userRepository.existsByNickname(signUpRequestDto.getNickname())) {
-            throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
+            throw new DuplicateNicknameException("이미 존재하는 닉네임입니다.");
         }
         UserEntity userEntity = UserEntity.builder()
                 .email(signUpRequestDto.getEmail())
@@ -51,7 +53,7 @@ public class UserService {
     public void duplicateNickname(String nickname) {
         boolean isDuplicate = userRepository.existsByNickname(nickname);
         if (isDuplicate) {
-            throw new DuplicateNicknameException("이미 사용 중인 닉네임입니다.");
+            throw new DuplicateNicknameException("이미 존재하는 닉네임입니다.");
         }
     }
 
@@ -78,5 +80,36 @@ public class UserService {
     // 이메일 중복 여부 확인
     public boolean isEmailExist(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    // 비밀번호 변경
+    public void updatePassword(Long userId, PasswordRequestDto passwordRequestDto) {
+        String currentPassword = passwordRequestDto.getCurrentPassword();
+        String newPassword = passwordRequestDto.getNewPassword();
+
+        UserEntity userEntity = this.userRepository.findById(userId).orElseThrow(()-> new UserNotFoundException("해당 회원은 존재하지 않습니다."));
+
+        if(!passwordEncoder.matches(currentPassword,userEntity.getPassword())){
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        }
+        userEntity.setPassword(passwordEncoder.encode(newPassword));
+        this.userRepository.save(userEntity);
+    }
+
+    public void updateStatus(Long userId, UpdateStatusRequestDto updateStatusRequestDto) {
+        UserEntity userEntity = this.userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("해당 회원은 존재하지 않습니다."));
+
+        String newStatus = updateStatusRequestDto.getStatus();
+        // status 값에 따라서 처리하는 로직
+        if ("DELETED".equals(newStatus)) {
+            userEntity.setStatus(Status.DELETED);
+        } else if ("INACTIVE".equals(newStatus)) {
+            userEntity.setStatus(Status.INACTIVE);
+        } else if ("ACTIVE".equals(newStatus)) {
+            userEntity.setStatus(Status.ACTIVE);
+        } else{
+            throw new IllegalArgumentException("잘못된 상태 변경값입니다.");
+        }
+        this.userRepository.save(userEntity);
     }
 }
