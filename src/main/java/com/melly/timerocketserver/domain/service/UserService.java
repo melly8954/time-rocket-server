@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @Service
 public class UserService {
@@ -101,6 +103,7 @@ public class UserService {
         this.userRepository.save(userEntity);
     }
 
+    // 계정 상태 변경
     public void updateStatus(Long userId, UpdateStatusRequestDto updateStatusRequestDto) {
         UserEntity userEntity = this.userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("해당 회원은 존재하지 않습니다."));
 

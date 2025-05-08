@@ -46,6 +46,9 @@ public class UserEntity {
     @Column(name="deleted_at")
     private LocalDateTime deletedAt;
 
+    @Column(name="last_login_at")
+    private LocalDateTime lastLoginAt;
+
     private String provider;
     @Column(name="provider_id")
     private String providerId;
