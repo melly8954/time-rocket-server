@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class EmailRequest {
+public class EmailRequestDto {
     @NotBlank(message = "email 항목은 필수 입력 항목입니다.")
     @Size(min = 10, max = 255, message = "email은 10~255자 사이 입니다.")
     @Pattern(
