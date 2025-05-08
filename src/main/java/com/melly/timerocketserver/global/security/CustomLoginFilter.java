@@ -2,6 +2,8 @@ package com.melly.timerocketserver.global.security;
 
 import com.melly.timerocketserver.domain.entity.UserEntity;
 import com.melly.timerocketserver.domain.repository.UserRepository;
+import com.melly.timerocketserver.global.exception.AccountDeletedException;
+import com.melly.timerocketserver.global.exception.AccountInActiveException;
 import com.melly.timerocketserver.global.jwt.JwtUtil;
 import com.melly.timerocketserver.global.jwt.RefreshEntity;
 import com.melly.timerocketserver.global.jwt.RefreshRepository;
@@ -99,9 +101,23 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
 
     // 로그인 실패시 실행하는 메소드
     @Override
-    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
-        // 로그인 실패시 401 응답 코드 반환
-        response.setStatus(401);
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException {
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+
+        String message = "로그인이 실패했습니다.";
+
+        // 내부 예외 메시지 전달
+        Throwable cause = failed.getCause();
+        if (cause instanceof AccountDeletedException || cause instanceof AccountInActiveException) {
+            message = cause.getMessage();
+        }
+
+        String jsonResponse = "{\n"
+                + "\"code\": 401,\n"
+                + "\"message\": \"" + message + "\"\n}";
+
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(jsonResponse);
     }
 
     // 마지막 로그인 시간 업데이트 메소드
