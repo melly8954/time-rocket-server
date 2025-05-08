@@ -89,6 +89,11 @@ public class UserService {
 
         UserEntity userEntity = this.userRepository.findById(userId).orElseThrow(()-> new UserNotFoundException("해당 회원은 존재하지 않습니다."));
 
+        // 소셜 로그인 사용자는 비밀번호 변경 불가, 프론트에서 처리 못한 예외처리를 위한 코드
+        if (userEntity.getProvider() != null) {
+            throw new IllegalStateException("소셜 로그인은 비밀번호 변경이 불가합니다.");
+        }
+
         if(!passwordEncoder.matches(currentPassword,userEntity.getPassword())){
             throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
         }
