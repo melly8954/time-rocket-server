@@ -118,6 +118,7 @@ public class UserService {
         } else{
             throw new IllegalArgumentException("잘못된 상태 변경값입니다.");
         }
+        userEntity.setDeletedAt(LocalDateTime.now());
         this.userRepository.save(userEntity);
     }
 }
