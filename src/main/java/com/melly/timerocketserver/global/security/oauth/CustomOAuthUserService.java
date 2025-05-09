@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class CustomOAuthUserService extends DefaultOAuth2UserService {
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
     public CustomOAuthUserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
