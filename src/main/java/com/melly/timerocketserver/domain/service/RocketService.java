@@ -48,10 +48,8 @@ public class RocketService {
         // 2. 수신자, 발신자, 그룹 정보 가져오기 (예시: 이메일로 유저 찾기)
         UserEntity sender = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("보내는 사용자를 찾을 수 없습니다."));
-        UserEntity receiver = userRepository.findByEmail(rocketReceiverEmail);
-        if( receiver == null ){
-            throw new UserNotFoundException("받는 사용자를 찾을 수 없습니다.");
-        }
+        UserEntity receiver = userRepository.findByEmail(rocketReceiverEmail)
+                .orElseThrow(() -> new UserNotFoundException("해당 회원은 존재하지 않습니다."));
 
         // 3. RocketEntity 생성
         RocketEntity rocket = RocketEntity.builder()

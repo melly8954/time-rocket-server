@@ -28,7 +28,7 @@ public class CustomOAuthUserService extends DefaultOAuth2UserService {
         System.out.println(oAuth2User);
 
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
-        OAuth2Response oAuth2Response = null;
+        OAuth2Response oAuth2Response;
         if (registrationId.equals("naver")) {
             // oAuth2User.getAttributes()로 얻은 Map<String, Object> 형태의 데이터를 NaverResponse 객체로 변환
             oAuth2Response = new NaverResponse(oAuth2User.getAttributes());
@@ -37,6 +37,7 @@ public class CustomOAuthUserService extends DefaultOAuth2UserService {
             oAuth2Response = new GoogleResponse(oAuth2User.getAttributes());
         }
         else {
+            oAuth2Response = null;
             return null;
         }
 
@@ -45,37 +46,39 @@ public class CustomOAuthUserService extends DefaultOAuth2UserService {
         String providerId = oAuth2Response.getProviderId();
         String email = oAuth2Response.getEmail();
 
-        UserEntity user = userRepository.findByEmail(email);
-        if (user == null) {
-            // 아래 return 시 user 대신 다른 변수명 사용하여 user 가 null 이 되지않도록 주의
-            user = UserEntity.builder()
-                    .email(email)
-                    .nickname(oAuth2Response.getName())
-                    .role(Role.USER)
-                    .status(Status.ACTIVE)
-                    .provider(provider)
-                    .providerId(providerId)
-                    .build();
-            userRepository.save(user);
-        }else{
-            // 이미 가입된 사용자인데, provider 가 다르면 예외 발생
-            if (user.getProvider() == null || !user.getProvider().equals(provider)) {
-                throw new OAuth2AuthenticationException(
-                        new OAuth2Error("provider_mismatch", "기존 계정이 이미 다른 로그인 방식으로 가입되어 있습니다. 일반 로그인을 이용해주세요.", null)
-                );
-            }
-            // 계정 상태 확인
-            if (user.getStatus() == Status.DELETED) {
-                throw new OAuth2AuthenticationException(
-                        new OAuth2Error("account_deleted", "탈퇴된 계정입니다. 관리자에게 문의하십시오.", null)
-                );
-            }
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseGet(() -> {
+                    // 사용자가 존재하지 않는 경우 새 사용자 생성
+                    UserEntity newUser = UserEntity.builder()
+                            .email(email)
+                            .nickname(oAuth2Response.getName())
+                            .role(Role.USER)
+                            .status(Status.ACTIVE)
+                            .provider(provider)
+                            .providerId(providerId)
+                            .build();
+                    userRepository.save(newUser);
+                    return newUser;
+                });
 
-            if (user.getStatus() == Status.INACTIVE) {
-                throw new OAuth2AuthenticationException(
-                        new OAuth2Error("account_inactive", "이 계정은 비활성화 상태입니다. 관리자에게 문의하십시오.", null)
-                );
-            }
+        // 이미 가입된 사용자인데, provider가 다르면 예외 발생
+        if (user.getProvider() == null || !user.getProvider().equals(provider)) {
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("provider_mismatch", "기존 계정이 이미 다른 로그인 방식으로 가입되어 있습니다. 일반 로그인을 이용해주세요.", null)
+            );
+        }
+
+        // 계정 상태 확인
+        if (user.getStatus() == Status.DELETED) {
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("account_deleted", "탈퇴된 계정입니다. 관리자에게 문의하십시오.", null)
+            );
+        }
+
+        if (user.getStatus() == Status.INACTIVE) {
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("account_inactive", "이 계정은 비활성화 상태입니다. 관리자에게 문의하십시오.", null)
+            );
         }
 
         return new CustomUserDetails(user, oAuth2User.getAttributes());

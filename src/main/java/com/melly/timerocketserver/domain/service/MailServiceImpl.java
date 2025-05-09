@@ -118,10 +118,8 @@ public class MailServiceImpl implements IMailService {
         }
 
         // 검증 성공 시 비밀번호 변경
-        UserEntity user = userRepository.findByEmail(email);
-        if (user == null) {
-            throw new UserNotFoundException("해당 회원은 존재하지 않습니다.");
-        }
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("해당 회원은 존재하지 않습니다."));
 
         user.setPassword(passwordEncoder.encode(inputPassword));
         userRepository.save(user);

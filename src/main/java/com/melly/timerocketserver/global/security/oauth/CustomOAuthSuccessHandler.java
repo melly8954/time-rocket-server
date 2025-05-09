@@ -3,6 +3,7 @@ package com.melly.timerocketserver.global.security.oauth;
 import com.melly.timerocketserver.domain.entity.UserEntity;
 import com.melly.timerocketserver.domain.repository.UserRepository;
 import com.melly.timerocketserver.domain.service.UserService;
+import com.melly.timerocketserver.global.exception.UserNotFoundException;
 import com.melly.timerocketserver.global.jwt.JwtUtil;
 import com.melly.timerocketserver.global.jwt.RefreshEntity;
 import com.melly.timerocketserver.global.jwt.RefreshRepository;
@@ -72,10 +73,8 @@ public class CustomOAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     // 마지막 로그인 시간 업데이트 메소드
     private void updateLastLogin(String username) {
         // 여기에 DB에서 사용자 정보를 조회한 후, last_login_at 필드를 현재 시간으로 갱신하는 로직 추가
-        UserEntity userEntity = userRepository.findByEmail(username);
-        if(userEntity == null) {
-           throw new RuntimeException("사용자를 찾을 수 없습니다.");
-        }
+        UserEntity userEntity = userRepository.findByEmail(username)
+                .orElseThrow(() -> new UserNotFoundException("해당 회원은 존재하지 않습니다."));
         // 현재 시간으로 last_login_at 업데이트
         userEntity.setLastLoginAt(LocalDateTime.now());
         userRepository.save(userEntity);
