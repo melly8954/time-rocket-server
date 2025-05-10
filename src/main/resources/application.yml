@@ -10,6 +10,8 @@ spring:
     name: time-rocket-server
   profiles:
     active: local
+  jackson:
+    time-zone: Asia/Seoul   # Jackson은 LocalDateTime을 역직렬화할 때 jackson.time-zone을 기준으로 해석
   config:
     import: optional:file:.env[.properties]
   mustache:
