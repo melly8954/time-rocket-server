@@ -1,8 +1,8 @@
 package com.melly.timerocketserver.domain.controller;
 
-import com.melly.timerocketserver.domain.dto.request.EmailRequest;
-import com.melly.timerocketserver.domain.dto.request.EmailVerificationRequest;
-import com.melly.timerocketserver.domain.dto.request.PasswordVerificationRequest;
+import com.melly.timerocketserver.domain.dto.request.EmailRequestDto;
+import com.melly.timerocketserver.domain.dto.request.EmailVerificationRequestDto;
+import com.melly.timerocketserver.domain.dto.request.PasswordVerificationRequestDto;
 import com.melly.timerocketserver.domain.service.IMailService;
 import com.melly.timerocketserver.global.common.ResponseController;
 import com.melly.timerocketserver.global.common.ResponseDto;
@@ -28,8 +28,8 @@ public class EmailController implements ResponseController {
 
     // 이메일 인증 코드 발송
     @PostMapping("/emails")
-    public CompletableFuture<ResponseEntity<ResponseDto>> mailSend(@RequestBody @Validated EmailRequest emailRequest) {
-        return mailService.sendMail(emailRequest)
+    public CompletableFuture<ResponseEntity<ResponseDto>> mailSend(@RequestBody @Validated EmailRequestDto emailRequestDto) {
+        return mailService.sendMail(emailRequestDto)
                 .thenApply(code -> {
                     // 인증번호 발송 성공시 응답 생성
                     return makeResponseEntity(HttpStatus.OK, "이메일 인증번호가 발송되었습니다.", null);
@@ -46,21 +46,21 @@ public class EmailController implements ResponseController {
 
     // 이메일 인증 코드 검증
     @PostMapping("/emails/verify-code")
-    public ResponseEntity<ResponseDto> verifyCode(@RequestBody @Validated EmailVerificationRequest emailVerificationRequest) {
-        mailService.verifyCode(emailVerificationRequest);
+    public ResponseEntity<ResponseDto> verifyCode(@RequestBody @Validated EmailVerificationRequestDto emailVerificationRequestDto) {
+        mailService.verifyCode(emailVerificationRequestDto);
         return makeResponseEntity(HttpStatus.OK, "인증번호 검증 성공", null);
     }
 
     // 임시 비밀번호 발급
     @PostMapping("/emails/temp-password")
-    public ResponseEntity<ResponseDto> tempPassword(@RequestBody @Validated EmailRequest emailRequest) {
-        mailService.processTempPassword(emailRequest.getEmail());
+    public ResponseEntity<ResponseDto> tempPassword(@RequestBody @Validated EmailRequestDto emailRequestDto) {
+        mailService.processTempPassword(emailRequestDto.getEmail());
         return makeResponseEntity(HttpStatus.OK, "임시 비밀번호가 이메일로 발송되었습니다.", null);
     }
 
     // 임시 비밀번호 검증
     @PostMapping("/emails/verify-temporary-password")
-    public ResponseEntity<ResponseDto> verifyTemporaryPassword(@RequestBody @Validated PasswordVerificationRequest request) {
+    public ResponseEntity<ResponseDto> verifyTemporaryPassword(@RequestBody @Validated PasswordVerificationRequestDto request) {
         mailService.verifyTemporaryPassword(request);
         return makeResponseEntity(HttpStatus.OK, "임시 비밀번호 인증 및 변경 완료", null);
     }

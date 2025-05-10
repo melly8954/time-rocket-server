@@ -1,5 +1,9 @@
 package com.melly.timerocketserver.global.security;
 
+import com.melly.timerocketserver.domain.entity.UserEntity;
+import com.melly.timerocketserver.domain.repository.UserRepository;
+import com.melly.timerocketserver.global.exception.AccountDeletedException;
+import com.melly.timerocketserver.global.exception.AccountInActiveException;
 import com.melly.timerocketserver.global.jwt.JwtUtil;
 import com.melly.timerocketserver.global.jwt.RefreshEntity;
 import com.melly.timerocketserver.global.jwt.RefreshRepository;
@@ -17,6 +21,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -27,11 +32,13 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final RefreshRepository refreshRepository;
+    private final UserRepository userRepository;
 
-    public CustomLoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshRepository refreshRepository) {
+    public CustomLoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshRepository refreshRepository, UserRepository userRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.refreshRepository = refreshRepository;
+        this.userRepository = userRepository;
         setFilterProcessesUrl("/api/users/login"); // 로그인 URL 변경
     }
 
@@ -60,6 +67,9 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
+
+        // 로그인 후 마지막 로그인 시간 업데이트
+        updateLastLogin(username);
 
         // Access Token 생성
         String access = jwtUtil.createJwt("access", username, role, 600000L); // 10분
@@ -91,9 +101,35 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
 
     // 로그인 실패시 실행하는 메소드
     @Override
-    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
-        // 로그인 실패시 401 응답 코드 반환
-        response.setStatus(401);
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException {
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+
+        String message = "로그인이 실패했습니다.";
+
+        // 내부 예외 메시지 전달
+        Throwable cause = failed.getCause();
+        if (cause instanceof AccountDeletedException || cause instanceof AccountInActiveException) {
+            message = cause.getMessage();
+        }
+
+        String jsonResponse = "{\n"
+                + "\"code\": 401,\n"
+                + "\"message\": \"" + message + "\"\n}";
+
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(jsonResponse);
     }
 
+    // 마지막 로그인 시간 업데이트 메소드
+    private void updateLastLogin(String username) {
+        // 여기에 DB에서 사용자 정보를 조회한 후, last_login_at 필드를 현재 시간으로 갱신하는 로직 추가
+        UserEntity userEntity = userRepository.findByEmailOrNickname(username,username);
+        if (userEntity == null) {
+            throw new RuntimeException("사용자를 찾을 수 없습니다.");
+        }
+        // 현재 시간으로 last_login_at 업데이트
+        userEntity.setLastLoginAt(LocalDateTime.now());
+        userRepository.save(userEntity);
+        log.info("유저의 마지막 로그인 시간을 업데이트했습니다.");
+    }
 }

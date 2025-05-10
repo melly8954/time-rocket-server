@@ -20,6 +20,12 @@ public class GlobalExceptionHandler implements ResponseController {
         return makeResponseEntity(HttpStatus.BAD_REQUEST, e.getMessage(), null);
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ResponseDto> handleIllegalState(IllegalStateException e) {
+        log.error("400 Error : " + e.getMessage());
+        return makeResponseEntity(HttpStatus.BAD_REQUEST, e.getMessage(), null);
+    }
+
     // DTO 필드 유효성 검사 실패 시 발생하는 예외를 처리하는 핸들러
     // (@Validated 또는 @Valid 사용 시, @RequestBody DTO 내부 필드 제약조건 위반 시 발생)
     @ExceptionHandler(MethodArgumentNotValidException.class)

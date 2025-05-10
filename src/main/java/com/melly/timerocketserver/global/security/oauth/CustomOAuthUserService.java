@@ -64,6 +64,18 @@ public class CustomOAuthUserService extends DefaultOAuth2UserService {
                         new OAuth2Error("provider_mismatch", "기존 계정이 이미 다른 로그인 방식으로 가입되어 있습니다. 일반 로그인을 이용해주세요.", null)
                 );
             }
+            // 계정 상태 확인
+            if (user.getStatus() == Status.DELETED) {
+                throw new OAuth2AuthenticationException(
+                        new OAuth2Error("account_deleted", "탈퇴된 계정입니다. 관리자에게 문의하십시오.", null)
+                );
+            }
+
+            if (user.getStatus() == Status.INACTIVE) {
+                throw new OAuth2AuthenticationException(
+                        new OAuth2Error("account_inactive", "이 계정은 비활성화 상태입니다. 관리자에게 문의하십시오.", null)
+                );
+            }
         }
 
         return new CustomUserDetails(user, oAuth2User.getAttributes());

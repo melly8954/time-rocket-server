@@ -1,8 +1,8 @@
 package com.melly.timerocketserver.domain.service;
 
-import com.melly.timerocketserver.domain.dto.request.EmailRequest;
-import com.melly.timerocketserver.domain.dto.request.EmailVerificationRequest;
-import com.melly.timerocketserver.domain.dto.request.PasswordVerificationRequest;
+import com.melly.timerocketserver.domain.dto.request.EmailRequestDto;
+import com.melly.timerocketserver.domain.dto.request.EmailVerificationRequestDto;
+import com.melly.timerocketserver.domain.dto.request.PasswordVerificationRequestDto;
 import com.melly.timerocketserver.domain.entity.UserEntity;
 import com.melly.timerocketserver.domain.repository.UserRepository;
 import com.melly.timerocketserver.global.exception.UserNotFoundException;
@@ -58,9 +58,9 @@ public class MailServiceImpl implements IMailService {
 
     @Async  // 비동기적으로 이메일을 전송하고 결과를 반환하는 메서드
     @Override
-    public CompletableFuture<String> sendMail(EmailRequest emailRequest) {
-        String email = emailRequest.getEmail();
-        try {
+    public CompletableFuture<String> sendMail(EmailRequestDto emailRequestDto) {
+        String email = emailRequestDto.getEmail();
+        try { 
             if (userRepository.existsByEmail(email)) {
                 return CompletableFuture.failedFuture(new IllegalArgumentException("이미 가입된 이메일입니다."));
             }
@@ -74,9 +74,9 @@ public class MailServiceImpl implements IMailService {
     }
 
     @Override   // 이메일 인증번호 검증
-    public void verifyCode(EmailVerificationRequest emailVerificationRequest) {
-        String email = emailVerificationRequest.getEmail();
-        String inputCode = emailVerificationRequest.getVerificationCode();
+    public void verifyCode(EmailVerificationRequestDto emailVerificationRequestDto) {
+        String email = emailVerificationRequestDto.getEmail();
+        String inputCode = emailVerificationRequestDto.getVerificationCode();
         EmailCodeEntry entry = emailCodeMap.get(email);
         if (entry == null || System.currentTimeMillis() > entry.getExpireTime()) {
             throw new IllegalArgumentException("인증번호가 존재하지 않거나 만료되었습니다.");
@@ -104,9 +104,9 @@ public class MailServiceImpl implements IMailService {
     }
 
     @Override   // 임시 비밀번호를 검증
-    public void verifyTemporaryPassword(PasswordVerificationRequest passwordVerificationRequest) {
-        String email = passwordVerificationRequest.getEmail();
-        String inputPassword = passwordVerificationRequest.getTempPassword();
+    public void verifyTemporaryPassword(PasswordVerificationRequestDto passwordVerificationRequestDto) {
+        String email = passwordVerificationRequestDto.getEmail();
+        String inputPassword = passwordVerificationRequestDto.getTempPassword();
 
         TempPasswordEntry entry = tempPasswordMap.get(email);
         if (entry == null || System.currentTimeMillis() > entry.expireTime) {

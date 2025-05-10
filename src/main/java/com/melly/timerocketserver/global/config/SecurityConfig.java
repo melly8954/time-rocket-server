@@ -90,7 +90,7 @@ public class SecurityConfig {
         // 필터 추가 (UsernamePasswordAuthenticationFilter 를 CustomLoginFilter 로 갈음)
         // CustomLoginFilter()는 인자를 받음 (AuthenticationManager() 메소드에 authenticationConfiguration 객체를 넣어야 함) 따라서 등록 필요
         http
-                .addFilterAt(new CustomLoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshRepository), UsernamePasswordAuthenticationFilter.class);
+                .addFilterAt(new CustomLoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshRepository, userRepository), UsernamePasswordAuthenticationFilter.class);
 
         // 로그아웃 필터 추가 (스프링 시큐리티 로그아웃 필터 앞에 등록)
         http

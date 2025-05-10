@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @Service
 public class UserService {
@@ -89,6 +91,11 @@ public class UserService {
 
         UserEntity userEntity = this.userRepository.findById(userId).orElseThrow(()-> new UserNotFoundException("해당 회원은 존재하지 않습니다."));
 
+        // 소셜 로그인 사용자는 비밀번호 변경 불가, 프론트에서 처리 못한 예외처리를 위한 코드
+        if (userEntity.getProvider() != null) {
+            throw new IllegalStateException("소셜 로그인은 비밀번호 변경이 불가합니다.");
+        }
+
         if(!passwordEncoder.matches(currentPassword,userEntity.getPassword())){
             throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
         }
@@ -96,6 +103,7 @@ public class UserService {
         this.userRepository.save(userEntity);
     }
 
+    // 계정 상태 변경
     public void updateStatus(Long userId, UpdateStatusRequestDto updateStatusRequestDto) {
         UserEntity userEntity = this.userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("해당 회원은 존재하지 않습니다."));
 
@@ -110,6 +118,7 @@ public class UserService {
         } else{
             throw new IllegalArgumentException("잘못된 상태 변경값입니다.");
         }
+        userEntity.setDeletedAt(LocalDateTime.now());
         this.userRepository.save(userEntity);
     }
 }
