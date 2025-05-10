@@ -33,7 +33,7 @@ public class RocketService {
 
     @Transactional
     public void sendRocket(Long userId, RocketRequestDto rocketRequestDto){
-        String rocketName = rocketRequestDto.getName();
+        String rocketName = rocketRequestDto.getRocketName();
         String rocketDesign = rocketRequestDto.getDesign();
         LocalDateTime rocketLockExpiredAt = rocketRequestDto.getLockExpiredAt();
         String rocketReceiverType = rocketRequestDto.getReceiverType();

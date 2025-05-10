@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class RocketRequestDto {
-    private String name;
+    private String rocketName;
     private String design;
     private LocalDateTime lockExpiredAt;
     private String receiverType;
