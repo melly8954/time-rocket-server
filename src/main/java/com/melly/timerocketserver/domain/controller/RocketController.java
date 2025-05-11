@@ -23,5 +23,9 @@ public class RocketController implements ResponseController {
         return makeResponseEntity(HttpStatus.CREATED, "로켓이 전송 되었습니다.", null);
     }
 
-
+    @PostMapping("/users/{userId}/temp")
+    public ResponseEntity<ResponseDto> tempRocket(@PathVariable Long userId, @RequestBody RocketRequestDto rocketRequestDto) {
+        this.rocketService.tempRocket(userId, rocketRequestDto);
+        return makeResponseEntity(HttpStatus.OK, "로켓이 임시저장 되었습니다.", null);
+    }
 }
