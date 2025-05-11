@@ -47,7 +47,7 @@ public class RocketService {
         UserEntity sender = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("보내는 사용자를 찾을 수 없습니다."));
         UserEntity receiver = userRepository.findByEmail(rocketReceiverEmail)
-                .orElseThrow(() -> new UserNotFoundException("해당 회원은 존재하지 않습니다."));
+                .orElseThrow(() -> new UserNotFoundException("수신자 이메일을 찾을 수 없습니다."));
 
         // RocketEntity 생성
         RocketEntity rocket = RocketEntity.builder()
