@@ -1,6 +1,7 @@
 package com.melly.timerocketserver.global.jwt;
 
 import com.melly.timerocketserver.domain.entity.UserEntity;
+import com.melly.timerocketserver.global.exception.UserNotFoundException;
 import com.melly.timerocketserver.global.security.CustomUserDetails;
 import com.melly.timerocketserver.domain.repository.UserRepository;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -79,7 +80,8 @@ public class JwtFilter extends OncePerRequestFilter {
         // username 값 획득
         String username = jwtUtil.getUsername(accessToken);
 
-        UserEntity user = this.userRepository.findByEmailOrNickname(username,username);
+        UserEntity user = this.userRepository.findByEmailOrNickname(username,username)
+                .orElseThrow(() -> new UserNotFoundException("해당 회원은 존재하지 않습니다."));
 
         CustomUserDetails customUserDetails = new CustomUserDetails(user);
 

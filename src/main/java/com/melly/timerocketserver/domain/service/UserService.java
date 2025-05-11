@@ -61,22 +61,16 @@ public class UserService {
 
     // 이메일과 닉네임을 통한 유저 찾기
     public UserEntity findByEmailOrNickname(String username) {
-        UserEntity user = this.userRepository.findByEmailOrNickname(username, username);
-        if(user != null){
-            return user;
-        }else{
-            throw new UserNotFoundException("해당 회원은 존재하지 않습니다.");
-        }
+        UserEntity user = this.userRepository.findByEmailOrNickname(username, username)
+                .orElseThrow(() -> new UserNotFoundException("해당 회원은 존재하지 않습니다."));
+        return user;
     }
 
     // 이메일을 통한 유저 찾기
     public UserEntity findByEmail(String email) {
-        UserEntity user = this.userRepository.findByEmail(email);
-        if(user != null){
-            return user;
-        }else {
-            throw new UserNotFoundException("해당 회원은 존재하지 않습니다.");
-        }
+        UserEntity user = this.userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("해당 회원은 존재하지 않습니다."));
+        return user;
     }
 
     // 이메일 중복 여부 확인

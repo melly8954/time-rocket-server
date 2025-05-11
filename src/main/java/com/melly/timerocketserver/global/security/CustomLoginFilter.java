@@ -4,6 +4,7 @@ import com.melly.timerocketserver.domain.entity.UserEntity;
 import com.melly.timerocketserver.domain.repository.UserRepository;
 import com.melly.timerocketserver.global.exception.AccountDeletedException;
 import com.melly.timerocketserver.global.exception.AccountInActiveException;
+import com.melly.timerocketserver.global.exception.UserNotFoundException;
 import com.melly.timerocketserver.global.jwt.JwtUtil;
 import com.melly.timerocketserver.global.jwt.RefreshEntity;
 import com.melly.timerocketserver.global.jwt.RefreshRepository;
@@ -72,7 +73,7 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
         updateLastLogin(username);
 
         // Access Token 생성
-        String access = jwtUtil.createJwt("access", username, role, 600000L); // 10분
+        String access = jwtUtil.createJwt("access", username, role, 60000L); // 10분
         response.setHeader("Authorization", access);
         response.setStatus(HttpStatus.OK.value());
         // 로그인 성공시 JSON 응답 작성
@@ -123,10 +124,8 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
     // 마지막 로그인 시간 업데이트 메소드
     private void updateLastLogin(String username) {
         // 여기에 DB에서 사용자 정보를 조회한 후, last_login_at 필드를 현재 시간으로 갱신하는 로직 추가
-        UserEntity userEntity = userRepository.findByEmailOrNickname(username,username);
-        if (userEntity == null) {
-            throw new RuntimeException("사용자를 찾을 수 없습니다.");
-        }
+        UserEntity userEntity = userRepository.findByEmailOrNickname(username,username)
+                .orElseThrow(() -> new UserNotFoundException("해당 회원은 존재하지 않습니다."));
         // 현재 시간으로 last_login_at 업데이트
         userEntity.setLastLoginAt(LocalDateTime.now());
         userRepository.save(userEntity);
