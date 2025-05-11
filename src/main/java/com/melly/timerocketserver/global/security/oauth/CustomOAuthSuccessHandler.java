@@ -45,7 +45,7 @@ public class CustomOAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         // 로그인 후 마지막 로그인 시간 업데이트
         updateLastLogin(username);
 
-        String access = jwtUtil.createJwt("access", username, role, 60000L);
+        String access = jwtUtil.createJwt("access", username, role, 600000L);
         String refresh = jwtUtil.createJwt("refresh", username, role, 86400000L);       // 24시간
 
         Date date = new Date(System.currentTimeMillis() + 86400000L);

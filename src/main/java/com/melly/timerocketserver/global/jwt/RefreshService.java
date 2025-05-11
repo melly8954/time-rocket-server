@@ -49,7 +49,7 @@ public class RefreshService {
         String role = jwtUtil.getRole(refresh_token);
 
         // 6. 토큰 재발급
-        String newAccess = jwtUtil.createJwt("access", username, role, 60000L);
+        String newAccess = jwtUtil.createJwt("access", username, role, 600000L);
         String newRefresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
 
         // 7. 기존 엔티티 수정 (delete + save 아님)
