@@ -1,6 +1,7 @@
 package com.melly.timerocketserver.domain.service;
 
 import com.melly.timerocketserver.domain.dto.request.RocketRequestDto;
+import com.melly.timerocketserver.domain.dto.response.RocketResponse;
 import com.melly.timerocketserver.domain.entity.ChestEntity;
 import com.melly.timerocketserver.domain.entity.RocketEntity;
 import com.melly.timerocketserver.domain.entity.UserEntity;
@@ -8,13 +9,17 @@ import com.melly.timerocketserver.domain.repository.ChestRepository;
 import com.melly.timerocketserver.domain.repository.GroupRepository;
 import com.melly.timerocketserver.domain.repository.RocketRepository;
 import com.melly.timerocketserver.domain.repository.UserRepository;
+import com.melly.timerocketserver.global.exception.RocketNotFoundException;
 import com.melly.timerocketserver.global.exception.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -33,7 +38,8 @@ public class RocketService {
         this.groupRepository = groupRepository;
         this.chestRepository = chestRepository;
     }
-
+    
+    // 로켓 전송
     @Transactional
     public void sendRocket(Long userId, RocketRequestDto rocketRequestDto){
         String rocketName = rocketRequestDto.getRocketName();
@@ -75,7 +81,8 @@ public class RocketService {
                 .build();
         chestRepository.save(chest);
     }
-
+    
+    // 로켓 임시저장
     @Transactional
     public void tempRocket(Long userId, RocketRequestDto rocketRequestDto) {
         String rocketName = rocketRequestDto.getRocketName();
@@ -95,7 +102,8 @@ public class RocketService {
         Optional<RocketEntity> existingTemp = rocketRepository
                 .findBySenderUser_UserIdAndTempStatus(userId, true);
 
-        RocketEntity tempRocket = existingTemp.orElseGet(() -> new RocketEntity());
+        RocketEntity tempRocket = existingTemp
+                .orElseGet(() -> new RocketEntity());
         if (existingTemp.isPresent()) {
             log.info("기존 임시저장 로켓을 업데이트합니다.");
         } else {
@@ -115,5 +123,28 @@ public class RocketService {
         tempRocket.setSentAt(null);
 
         rocketRepository.save(tempRocket); // insert or update
+    }
+    
+    // 로켓 임시저장 불러오기
+    public RocketResponse getTempRocket(Long userId) {
+        if(userId == null || userId <= 0) {
+            throw new UserNotFoundException("해당 회원은 존재하지 않습니다.");
+        }
+        Optional<RocketEntity> existingTemp = this.rocketRepository.findBySenderUser_UserIdAndTempStatus(userId, true);
+        RocketEntity tempRocket = existingTemp
+                .orElseThrow(() -> new RocketNotFoundException("해당 회원은 임시 저장된 로켓이 존재하지 않습니다."));
+
+        String receiverEmail = tempRocket.getReceiverUser() != null
+                ? tempRocket.getReceiverUser().getEmail()
+                : null;
+        // RocketEntity → RocketResponse 변환
+        return RocketResponse.builder()
+                .rocketName(tempRocket.getName())
+                .design(tempRocket.getDesign())
+                .lockExpiredAt(tempRocket.getLockExpiredAt())
+                .receiverType(tempRocket.getReceiverType())
+                .receiverEmail(receiverEmail)
+                .content(tempRocket.getContent())
+                .build();
     }
 }

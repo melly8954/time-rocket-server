@@ -9,8 +9,8 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // 정적 리소스 (static 폴더) 매핑
-        registry.addResourceHandler("/static/**") // URL 패턴 설정
-                .addResourceLocations("classpath:/static/images"); // classpath의 static 폴더 매핑
+        // 외부 디렉토리 매핑
+        registry.addResourceHandler("/images/**") // URL 패턴 설정
+                .addResourceLocations("file:///C:/time_rocket/images/rocket_design"); // 외부 디렉토리 경로 매핑
     }
 }

@@ -73,7 +73,7 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
         updateLastLogin(username);
 
         // Access Token 생성
-        String access = jwtUtil.createJwt("access", username, role, 60000L); // 10분
+        String access = jwtUtil.createJwt("access", username, role, 600000L); // 10분
         response.setHeader("Authorization", access);
         response.setStatus(HttpStatus.OK.value());
         // 로그인 성공시 JSON 응답 작성
