@@ -53,6 +53,9 @@ public class UserService {
 
     // 닉네임 중복체크 비즈니스 로직
     public void duplicateNickname(String nickname) {
+        if(nickname == null || nickname.isEmpty()) {
+            throw new IllegalArgumentException("닉네임을 입력하지 않았습니다.");
+        }
         boolean isDuplicate = userRepository.existsByNickname(nickname);
         if (isDuplicate) {
             throw new DuplicateNicknameException("이미 존재하는 닉네임입니다.");
