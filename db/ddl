@@ -56,7 +56,8 @@ CREATE TABLE `rocket_tbl` (
   `lock_expired_at` timestamp NULL DEFAULT NULL,
   `receiver_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
-  `temp_status` tinyint(1) DEFAULT NULL,
+  `is_temp` tinyint(1) DEFAULT NULL,
+  `temp_created_at` timestamp NULL DEFAULT NULL,
   `sent_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`rocket_id`),
   KEY `fk_rocket_sender_user` (`sender_id`),
@@ -65,7 +66,7 @@ CREATE TABLE `rocket_tbl` (
   CONSTRAINT `fk_rocket_receiver_user` FOREIGN KEY (`receiver_id`) REFERENCES `user_tbl` (`user_id`),
   CONSTRAINT `fk_rocket_sender_user` FOREIGN KEY (`sender_id`) REFERENCES `user_tbl` (`user_id`),
   CONSTRAINT `rocket_tbl_group_tbl_FK` FOREIGN KEY (`group_id`) REFERENCES `group_tbl` (`group_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
 

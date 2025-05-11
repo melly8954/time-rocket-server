@@ -45,8 +45,11 @@ public class RocketEntity {
 
     private String content;
 
-    @Column(name = "temp_status")
-    private Boolean tempStatus;
+    @Column(name = "is_temp")
+    private Boolean isTemp;
+
+    @Column(name="temp_created_at")
+    private LocalDateTime tempCreatedAt;
 
     @Column(name = "sent_at")
     private LocalDateTime sentAt;

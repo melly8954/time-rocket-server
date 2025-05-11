@@ -16,10 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -66,7 +63,7 @@ public class RocketService {
                 .group(null)
                 .content(rocketContent)
                 .isLock(true)
-                .tempStatus(false)
+                .isTemp(false)
                 .sentAt(LocalDateTime.now())
                 .build();
         rocketRepository.save(rocket);
@@ -100,7 +97,7 @@ public class RocketService {
 
         // 기존 임시 저장 로켓이 있는지 확인
         Optional<RocketEntity> existingTemp = rocketRepository
-                .findBySenderUser_UserIdAndTempStatus(userId, true);
+                .findBySenderUser_UserIdAndIsTemp(userId, true);
 
         RocketEntity tempRocket = existingTemp
                 .orElseGet(() -> new RocketEntity());
@@ -119,9 +116,9 @@ public class RocketService {
         tempRocket.setGroup(null);
         tempRocket.setContent(rocketContent);
         tempRocket.setIsLock(null);
-        tempRocket.setTempStatus(true);
+        tempRocket.setIsTemp(true);
         tempRocket.setSentAt(null);
-
+        tempRocket.setTempCreatedAt(LocalDateTime.now());
         rocketRepository.save(tempRocket); // insert or update
     }
     
@@ -130,7 +127,7 @@ public class RocketService {
         if(userId == null || userId <= 0) {
             throw new UserNotFoundException("해당 회원은 존재하지 않습니다.");
         }
-        Optional<RocketEntity> existingTemp = this.rocketRepository.findBySenderUser_UserIdAndTempStatus(userId, true);
+        Optional<RocketEntity> existingTemp = this.rocketRepository.findBySenderUser_UserIdAndIsTemp(userId, true);
         RocketEntity tempRocket = existingTemp
                 .orElseThrow(() -> new RocketNotFoundException("해당 회원은 임시 저장된 로켓이 존재하지 않습니다."));
 
