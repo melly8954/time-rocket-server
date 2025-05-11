@@ -33,7 +33,7 @@ public class GlobalExceptionHandler implements ResponseController {
         String errorMessage = e.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .map(error -> error.getDefaultMessage())
                 .findFirst()
                 .orElse("잘못된 요청입니다.");
         log.error("400 Error : " + e.getMessage());

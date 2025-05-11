@@ -6,6 +6,7 @@ import com.melly.timerocketserver.global.common.ResponseController;
 import com.melly.timerocketserver.global.common.ResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,7 +18,7 @@ public class RocketController implements ResponseController {
         this.rocketService = rocketService;
     }
     @PostMapping("/users/{userId}")
-    public ResponseEntity<ResponseDto> sendRocket(@PathVariable Long userId, @RequestBody RocketRequestDto rocketRequestDto) {
+    public ResponseEntity<ResponseDto> sendRocket(@PathVariable Long userId, @RequestBody @Validated RocketRequestDto rocketRequestDto) {
         this.rocketService.sendRocket(userId, rocketRequestDto);
         return makeResponseEntity(HttpStatus.CREATED, "로켓이 전송 되었습니다.", null);
     }
