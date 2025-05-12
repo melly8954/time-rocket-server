@@ -1,5 +1,6 @@
 package com.melly.timerocketserver.domain.controller;
 
+import com.melly.timerocketserver.domain.dto.response.ChestDetailResponse;
 import com.melly.timerocketserver.domain.dto.response.ChestPageResponse;
 import com.melly.timerocketserver.domain.service.ChestService;
 import com.melly.timerocketserver.global.common.ResponseController;
@@ -33,8 +34,14 @@ public class ChestController implements ResponseController {
         sortBy = order.equalsIgnoreCase("desc") ? sortBy.descending() : sortBy.ascending();
         Pageable pageable = PageRequest.of(page - 1, size, sortBy);
 
-        ChestPageResponse chestList = this.chestService.getChestList(userId, rocketName, pageable);
+        ChestPageResponse chestList = this.chestService.getChestList(rocketName, pageable);
 
         return makeResponseEntity(HttpStatus.OK, "보관함에 저장된 로켓 목록을 불러왔습니다.", chestList);
+    }
+
+    @GetMapping("/users/{userId}/details/{chestId}")
+    public ResponseEntity<ResponseDto> getChestDetail(@PathVariable Long userId, @PathVariable Long chestId){
+        ChestDetailResponse chestDetail = this.chestService.getChestDetail(chestId);
+        return makeResponseEntity(HttpStatus.OK, "보관함의 로켓 상세 정보를 불러왔습니다.", chestDetail);
     }
 }

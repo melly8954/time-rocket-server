@@ -1,5 +1,6 @@
 package com.melly.timerocketserver.domain.service;
 
+import com.melly.timerocketserver.domain.dto.response.ChestDetailResponse;
 import com.melly.timerocketserver.domain.dto.response.ChestPageResponse;
 import com.melly.timerocketserver.domain.entity.ChestEntity;
 import com.melly.timerocketserver.domain.repository.ChestRepository;
@@ -18,7 +19,7 @@ public class ChestService {
         this.chestRepository = chestRepository;
     }
 
-    public ChestPageResponse getChestList(Long userId, String rocketName, Pageable pageable) {
+    public ChestPageResponse getChestList(String rocketName, Pageable pageable) {
         Page<ChestEntity> findEntity = null;
         if (rocketName == null || rocketName.isEmpty()) {
             // rocketName이 비어있다면, isDeleted = false인 항목만 조회
@@ -69,5 +70,33 @@ public class ChestService {
                 .sortBy(sortBy)
                 .sortDirection(sortDirection)
                 .build();
+    }
+
+    public ChestDetailResponse getChestDetail(Long chestId) {
+        ChestEntity findEntity = this.chestRepository.findByChestId(chestId);
+        boolean isLocked = findEntity.getRocket().getIsLock();
+
+        if(isLocked){
+            ChestDetailResponse detailResponse = ChestDetailResponse.builder()
+                    .rocketName(findEntity.getRocket().getRocketName())
+                    .designUrl(findEntity.getRocket().getDesign())
+                    .senderEmail(findEntity.getRocket().getSenderUser().getEmail())
+                    .sentAt(findEntity.getRocket().getSentAt())
+                    .lockExpiredAt(findEntity.getRocket().getLockExpiredAt())
+                    .isLocked(findEntity.getRocket().getIsLock())
+                    .build();
+            return detailResponse;
+        }else{
+            ChestDetailResponse detailResponse = ChestDetailResponse.builder()
+                    .rocketName(findEntity.getRocket().getRocketName())
+                    .designUrl(findEntity.getRocket().getDesign())
+                    .senderEmail(findEntity.getRocket().getSenderUser().getEmail())
+                    .sentAt(findEntity.getRocket().getSentAt())
+                    .content(findEntity.getRocket().getContent())
+                    .isLocked(findEntity.getRocket().getIsLock())
+                    .build();
+            return detailResponse;
+        }
+
     }
 }

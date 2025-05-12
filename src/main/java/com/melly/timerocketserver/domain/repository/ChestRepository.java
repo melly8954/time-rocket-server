@@ -1,6 +1,7 @@
 package com.melly.timerocketserver.domain.repository;
 
 import com.melly.timerocketserver.domain.entity.ChestEntity;
+import com.melly.timerocketserver.domain.service.ChestService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,4 +15,6 @@ public interface ChestRepository extends JpaRepository<ChestEntity, Long> {
     // ChestEntity의 rocket 필드를 통해 RocketEntity에 접근하고, 그 안의 rocketName 필드에 부분 일치 검색을 수행
     // 즉, findBy[isDeletedFalse]And[Rocket_RocketNameContaining] 구조
     Page<ChestEntity> findByIsDeletedFalseAndRocket_RocketNameContaining(String rocketName, Pageable pageable);
+
+    ChestEntity findByChestId(Long chestId);
 }
