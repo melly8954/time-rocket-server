@@ -6,7 +6,6 @@ import com.melly.timerocketserver.domain.entity.ChestEntity;
 import com.melly.timerocketserver.domain.entity.RocketEntity;
 import com.melly.timerocketserver.domain.entity.UserEntity;
 import com.melly.timerocketserver.domain.repository.ChestRepository;
-import com.melly.timerocketserver.domain.repository.GroupRepository;
 import com.melly.timerocketserver.domain.repository.RocketRepository;
 import com.melly.timerocketserver.domain.repository.UserRepository;
 import com.melly.timerocketserver.global.exception.RocketNotFoundException;
@@ -16,26 +15,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
 public class RocketService {
     private final RocketRepository rocketRepository;
     private final UserRepository userRepository;
-    private final GroupRepository groupRepository;
     private final ChestRepository chestRepository;
 
     public RocketService(RocketRepository rocketRepository,
                          UserRepository userRepository,
-                         GroupRepository groupRepository,
                          ChestRepository chestRepository) {
         this.rocketRepository = rocketRepository;
         this.userRepository = userRepository;
-        this.groupRepository = groupRepository;
         this.chestRepository = chestRepository;
     }
-    
+
     // 로켓 전송
     @Transactional
     public void sendRocket(Long userId, RocketRequestDto rocketRequestDto){
@@ -48,7 +44,7 @@ public class RocketService {
 
         // 수신자, 발신자, 그룹 정보 가져오기 (예시: 이메일로 유저 찾기)
         UserEntity sender = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("보내는 사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException("보내는 사용자를 찾을 수 없습니다."));
         UserEntity receiver = userRepository.findByEmail(rocketReceiverEmail)
                 .orElseThrow(() -> new UserNotFoundException("수신자 이메일을 찾을 수 없습니다."));
 
@@ -73,12 +69,12 @@ public class RocketService {
                 .rocket(rocket)
                 .isPublic(false)
                 .publicAt(null)
-                .location("A")
+                .location(generateRandomLocation(receiver.getUserId(), rocket.getReceiverType()))
                 .isDeleted(false)
                 .build();
         chestRepository.save(chest);
     }
-    
+
     // 로켓 임시저장
     @Transactional
     public void tempRocket(Long userId, RocketRequestDto rocketRequestDto) {
@@ -90,7 +86,7 @@ public class RocketService {
         String rocketContent = rocketRequestDto.getContent();
 
         UserEntity sender = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("보내는 사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException("보내는 사용자를 찾을 수 없습니다."));
 
         UserEntity receiver = userRepository.findByEmail(rocketReceiverEmail)
                 .orElse(null);
@@ -121,12 +117,9 @@ public class RocketService {
         tempRocket.setTempCreatedAt(LocalDateTime.now());
         rocketRepository.save(tempRocket); // insert or update
     }
-    
+
     // 로켓 임시저장 불러오기
     public RocketResponse getTempRocket(Long userId) {
-        if(userId == null || userId <= 0) {
-            throw new UserNotFoundException("해당 회원은 존재하지 않습니다.");
-        }
         Optional<RocketEntity> existingTemp = this.rocketRepository.findBySenderUser_UserIdAndIsTemp(userId, true);
         RocketEntity tempRocket = existingTemp
                 .orElseThrow(() -> new RocketNotFoundException("해당 회원은 임시 저장된 로켓이 존재하지 않습니다."));
@@ -143,5 +136,36 @@ public class RocketService {
                 .receiverEmail(receiverEmail)
                 .content(tempRocket.getContent())
                 .build();
+    }
+
+    // 로켓 전송 시 보관함에 생성되는 배치설정 ( self-1-5 )
+    private String generateRandomLocation(Long userId, String receiverType) {
+        int page = 1;
+        while (true) {
+            // page를 String 형태로 만들어서 전달
+            String locationPrefix = receiverType + "-" + page + "-%";
+            List<String> existingLocations = chestRepository.findLocationsByReceiver(userId, locationPrefix, receiverType);
+
+            Set<String> usedSet = new HashSet<>(existingLocations);
+            List<String> available = new ArrayList<>();
+
+            // 1부터 10까지 위치 확인
+            for (int i = 1; i <= 10; i++) {
+                // receiverType에 따라 구분된 위치 사용
+                String loc = receiverType + "-" + page + "-" + i;  // self 와 other 그리고 group 을 구분
+                if (!usedSet.contains(loc)) {
+                    available.add(loc);
+                }
+            }
+
+            if (!available.isEmpty()) {
+                // 랜덤하게 하나 선택
+                Collections.shuffle(available);
+                return available.get(0);
+            }
+
+            // 현재 페이지가 다 찼으면 → 다음 페이지 확인
+            page++;
+        }
     }
 }
