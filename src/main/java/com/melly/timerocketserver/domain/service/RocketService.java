@@ -54,7 +54,7 @@ public class RocketService {
 
         // RocketEntity 생성
         RocketEntity rocket = RocketEntity.builder()
-                .name(rocketName)
+                .rocketName(rocketName)
                 .design(rocketDesign)
                 .lockExpiredAt(rocketLockExpiredAt)
                 .receiverType(rocketReceiverType)
@@ -107,7 +107,7 @@ public class RocketService {
             log.info("새로운 임시저장 로켓을 생성합니다.");
         }
         // 값 세팅 (새로 만들든, 기존 걸 업데이트하든)
-        tempRocket.setName(rocketName);
+        tempRocket.setRocketName(rocketName);
         tempRocket.setDesign(rocketDesign);
         tempRocket.setLockExpiredAt(rocketLockExpiredAt);
         tempRocket.setReceiverType(rocketReceiverType);
@@ -136,7 +136,7 @@ public class RocketService {
                 : null;
         // RocketEntity → RocketResponse 변환
         return RocketResponse.builder()
-                .rocketName(tempRocket.getName())
+                .rocketName(tempRocket.getRocketName())
                 .design(tempRocket.getDesign())
                 .lockExpiredAt(tempRocket.getLockExpiredAt())
                 .receiverType(tempRocket.getReceiverType())

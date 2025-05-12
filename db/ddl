@@ -50,7 +50,7 @@ CREATE TABLE `rocket_tbl` (
   `sender_id` bigint DEFAULT NULL,
   `receiver_id` bigint DEFAULT NULL,
   `group_id` bigint DEFAULT NULL,
-  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `rocket_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `design` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `is_lock` tinyint(1) DEFAULT '1',
   `lock_expired_at` timestamp NULL DEFAULT NULL,
