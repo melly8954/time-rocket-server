@@ -23,16 +23,13 @@ import java.util.Optional;
 public class RocketService {
     private final RocketRepository rocketRepository;
     private final UserRepository userRepository;
-    private final GroupRepository groupRepository;
     private final ChestRepository chestRepository;
 
     public RocketService(RocketRepository rocketRepository,
                          UserRepository userRepository,
-                         GroupRepository groupRepository,
                          ChestRepository chestRepository) {
         this.rocketRepository = rocketRepository;
         this.userRepository = userRepository;
-        this.groupRepository = groupRepository;
         this.chestRepository = chestRepository;
     }
     
@@ -48,7 +45,7 @@ public class RocketService {
 
         // 수신자, 발신자, 그룹 정보 가져오기 (예시: 이메일로 유저 찾기)
         UserEntity sender = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("보내는 사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException("보내는 사용자를 찾을 수 없습니다."));
         UserEntity receiver = userRepository.findByEmail(rocketReceiverEmail)
                 .orElseThrow(() -> new UserNotFoundException("수신자 이메일을 찾을 수 없습니다."));
 
@@ -78,7 +75,7 @@ public class RocketService {
                 .build();
         chestRepository.save(chest);
     }
-    
+
     // 로켓 임시저장
     @Transactional
     public void tempRocket(Long userId, RocketRequestDto rocketRequestDto) {
@@ -90,7 +87,7 @@ public class RocketService {
         String rocketContent = rocketRequestDto.getContent();
 
         UserEntity sender = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("보내는 사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException("보내는 사용자를 찾을 수 없습니다."));
 
         UserEntity receiver = userRepository.findByEmail(rocketReceiverEmail)
                 .orElse(null);
@@ -121,12 +118,9 @@ public class RocketService {
         tempRocket.setTempCreatedAt(LocalDateTime.now());
         rocketRepository.save(tempRocket); // insert or update
     }
-    
+
     // 로켓 임시저장 불러오기
     public RocketResponse getTempRocket(Long userId) {
-        if(userId == null || userId <= 0) {
-            throw new UserNotFoundException("해당 회원은 존재하지 않습니다.");
-        }
         Optional<RocketEntity> existingTemp = this.rocketRepository.findBySenderUser_UserIdAndIsTemp(userId, true);
         RocketEntity tempRocket = existingTemp
                 .orElseThrow(() -> new RocketNotFoundException("해당 회원은 임시 저장된 로켓이 존재하지 않습니다."));

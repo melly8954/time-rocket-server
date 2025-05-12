@@ -60,9 +60,20 @@ public class GlobalExceptionHandler implements ResponseController {
         return makeResponseEntity(HttpStatus.BAD_REQUEST, e.getMessage(), null);
     }
 
-    // 사용자 정의 예외
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ResponseDto> handleUserNotFound(UserNotFoundException e) {
+        log.error("404 Error : " + e.getMessage());
+        return makeResponseEntity(HttpStatus.NOT_FOUND, e.getMessage(), null);
+    }
+
+    @ExceptionHandler(RocketNotFoundException.class)
+    public ResponseEntity<ResponseDto> handleUserNotFound(RocketNotFoundException e) {
+        log.error("404 Error : " + e.getMessage());
+        return makeResponseEntity(HttpStatus.NOT_FOUND, e.getMessage(), null);
+    }
+
+    @ExceptionHandler(ChestNotFoundException.class)
+    public ResponseEntity<ResponseDto> handleUserNotFound(ChestNotFoundException e) {
         log.error("404 Error : " + e.getMessage());
         return makeResponseEntity(HttpStatus.NOT_FOUND, e.getMessage(), null);
     }

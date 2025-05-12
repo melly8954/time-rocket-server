@@ -5,13 +5,16 @@ import com.melly.timerocketserver.domain.dto.response.ChestPageResponse;
 import com.melly.timerocketserver.domain.service.ChestService;
 import com.melly.timerocketserver.global.common.ResponseController;
 import com.melly.timerocketserver.global.common.ResponseDto;
+import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+@Validated
 @RestController
 @RequestMapping("/api/chests")
 public class ChestController implements ResponseController {
@@ -40,7 +43,8 @@ public class ChestController implements ResponseController {
     }
 
     @GetMapping("/users/{userId}/details/{chestId}")
-    public ResponseEntity<ResponseDto> getChestDetail(@PathVariable Long userId, @PathVariable Long chestId){
+    public ResponseEntity<ResponseDto> getChestDetail(@PathVariable Long userId,
+                                                      @PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
         ChestDetailResponse chestDetail = this.chestService.getChestDetail(chestId);
         return makeResponseEntity(HttpStatus.OK, "보관함의 로켓 상세 정보를 불러왔습니다.", chestDetail);
     }

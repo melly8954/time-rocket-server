@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface ChestRepository extends JpaRepository<ChestEntity, Long> {
     // is_deleted 가 false 인 보관함 로켓 조회
@@ -16,5 +18,5 @@ public interface ChestRepository extends JpaRepository<ChestEntity, Long> {
     // 즉, findBy[isDeletedFalse]And[Rocket_RocketNameContaining] 구조
     Page<ChestEntity> findByIsDeletedFalseAndRocket_RocketNameContaining(String rocketName, Pageable pageable);
 
-    ChestEntity findByChestId(Long chestId);
+    Optional<ChestEntity> findByChestId(Long chestId);
 }

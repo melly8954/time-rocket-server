@@ -4,6 +4,7 @@ import com.melly.timerocketserver.domain.dto.response.ChestDetailResponse;
 import com.melly.timerocketserver.domain.dto.response.ChestPageResponse;
 import com.melly.timerocketserver.domain.entity.ChestEntity;
 import com.melly.timerocketserver.domain.repository.ChestRepository;
+import com.melly.timerocketserver.global.exception.ChestNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,10 @@ public class ChestService {
         } else {
             // rocketName이 존재한다면, 해당 조건을 포함하여 조회
             findEntity = this.chestRepository.findByIsDeletedFalseAndRocket_RocketNameContaining(rocketName, pageable);
+        }
+
+        if (findEntity.isEmpty()) {
+            throw new ChestNotFoundException("보관함에 저장된 로켓이 존재하지 않습니다.");
         }
 
         // ChestPageResponse 의 ChestDto 로 변환하여 반환, 자바 스트림 API 사용
@@ -73,9 +78,10 @@ public class ChestService {
     }
 
     public ChestDetailResponse getChestDetail(Long chestId) {
-        ChestEntity findEntity = this.chestRepository.findByChestId(chestId);
-        boolean isLocked = findEntity.getRocket().getIsLock();
+        ChestEntity findEntity = this.chestRepository.findByChestId(chestId)
+                .orElseThrow(()-> new ChestNotFoundException("보관함에 저장된 로켓이 존재하지 않습니다."));
 
+        boolean isLocked = findEntity.getRocket().getIsLock();
         if(isLocked){
             ChestDetailResponse detailResponse = ChestDetailResponse.builder()
                     .rocketName(findEntity.getRocket().getRocketName())
@@ -97,6 +103,5 @@ public class ChestService {
                     .build();
             return detailResponse;
         }
-
     }
 }
