@@ -30,7 +30,8 @@ public class RocketEntity {
     @JoinColumn(name = "group_id")
     private GroupEntity group;
 
-    private String name;
+    @Column(name="rocket_name")
+    private String rocketName;
 
     private String design;
 
