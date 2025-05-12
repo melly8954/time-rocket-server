@@ -1,22 +1,29 @@
 package com.melly.timerocketserver.domain.service;
 
+import com.melly.timerocketserver.domain.dto.request.LocationMoveRequest;
 import com.melly.timerocketserver.domain.dto.response.ChestDetailResponse;
 import com.melly.timerocketserver.domain.dto.response.ChestPageResponse;
 import com.melly.timerocketserver.domain.entity.ChestEntity;
+import com.melly.timerocketserver.domain.entity.RocketEntity;
 import com.melly.timerocketserver.domain.repository.ChestRepository;
+import com.melly.timerocketserver.domain.repository.RocketRepository;
 import com.melly.timerocketserver.global.exception.ChestNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class ChestService {
+    private final RocketRepository rocketRepository;
     private final ChestRepository chestRepository;
 
-    public ChestService(ChestRepository chestRepository) {
+    public ChestService(RocketRepository rocketRepository, ChestRepository chestRepository) {
+        this.rocketRepository = rocketRepository;
         this.chestRepository = chestRepository;
     }
 
@@ -102,6 +109,47 @@ public class ChestService {
                     .isLocked(findEntity.getRocket().getIsLock())
                     .build();
             return detailResponse;
+        }
+    }
+
+    // 위치 이동 처리 메서드
+    public void moveRocketLocation(Long rocketId, String receiverType, String newLocation) {
+        // 최종 이동하려는 위치 문자열 ("self-1-5" 같은 형식)
+        String targetLocation = receiverType + "-" + newLocation;
+
+        // 현재 이동할 로켓이 있는 보관함 정보 조회
+        ChestEntity currentChest = chestRepository.findByRocket_RocketId(rocketId)
+                .orElseThrow(() -> new RuntimeException("Rocket's current chest not found"));
+
+        // 현재 로켓의 receiverType 확인
+        String currentReceiverType = currentChest.getRocket().getReceiverType();
+
+        // 이동하려는 위치가 같은 receiverType인지 확인
+        if (!receiverType.equals(currentReceiverType)) {
+            throw new RuntimeException("Cannot move rocket to a location with a different receiverType.");
+        }
+
+        // 이동하려는 위치에 이미 보관함이 존재하는지 확인
+        Optional<ChestEntity> chestAtTargetOpt = chestRepository.findByLocation(targetLocation);
+
+        if (chestAtTargetOpt.isPresent()) {
+            // 해당 위치에 다른 로켓이 있다면 위치를 스왑
+            ChestEntity chestAtTarget = chestAtTargetOpt.get();
+
+            // 기존 위치 저장
+            String originalLocation = currentChest.getLocation();
+
+            // 위치 교환
+            currentChest.setLocation(targetLocation);
+            chestAtTarget.setLocation(originalLocation);
+
+            // 저장
+            chestRepository.save(currentChest);
+            chestRepository.save(chestAtTarget);
+        } else {
+            // 해당 위치가 비어 있다면 그냥 이동
+            currentChest.setLocation(targetLocation);
+            chestRepository.save(currentChest);
         }
     }
 }

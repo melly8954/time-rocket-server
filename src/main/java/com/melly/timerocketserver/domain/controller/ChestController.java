@@ -1,5 +1,6 @@
 package com.melly.timerocketserver.domain.controller;
 
+import com.melly.timerocketserver.domain.dto.request.LocationMoveRequest;
 import com.melly.timerocketserver.domain.dto.response.ChestDetailResponse;
 import com.melly.timerocketserver.domain.dto.response.ChestPageResponse;
 import com.melly.timerocketserver.domain.service.ChestService;
@@ -47,5 +48,16 @@ public class ChestController implements ResponseController {
                                                       @PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
         ChestDetailResponse chestDetail = this.chestService.getChestDetail(chestId);
         return makeResponseEntity(HttpStatus.OK, "보관함의 로켓 상세 정보를 불러왔습니다.", chestDetail);
+    }
+
+    // 보관함 배치 이동
+    @PutMapping("/move-location")
+    public ResponseEntity<String> moveLocation(@RequestBody LocationMoveRequest request) {
+        try {
+            this.chestService.moveRocketLocation(request.getRocketId(), request.getReceiverType(), request.getNewLocation());
+            return ResponseEntity.ok("Location moved successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to move location: " + e.getMessage());
+        }
     }
 }

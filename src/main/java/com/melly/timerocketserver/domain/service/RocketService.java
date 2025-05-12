@@ -138,7 +138,7 @@ public class RocketService {
                 .build();
     }
 
-    // 로켓 전송 시 보관함에 생성되는 배치설정
+    // 로켓 전송 시 보관함에 생성되는 배치설정 ( self-1-5 )
     private String generateRandomLocation(Long userId, String receiverType) {
         int page = 1;
         while (true) {
@@ -152,7 +152,7 @@ public class RocketService {
             // 1부터 10까지 위치 확인
             for (int i = 1; i <= 10; i++) {
                 // receiverType에 따라 구분된 위치 사용
-                String loc = receiverType + "-" + page + "-" + i;  // self와 other를 구분
+                String loc = receiverType + "-" + page + "-" + i;  // self 와 other 그리고 group 을 구분
                 if (!usedSet.contains(loc)) {
                     available.add(loc);
                 }
