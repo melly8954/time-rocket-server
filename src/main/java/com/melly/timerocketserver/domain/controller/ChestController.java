@@ -53,11 +53,7 @@ public class ChestController implements ResponseController {
     // 보관함 배치 이동
     @PutMapping("/move-location")
     public ResponseEntity<String> moveLocation(@RequestBody LocationMoveRequest request) {
-        try {
-            this.chestService.moveRocketLocation(request.getRocketId(), request.getReceiverType(), request.getNewLocation());
-            return ResponseEntity.ok("Location moved successfully.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to move location: " + e.getMessage());
-        }
+        this.chestService.moveRocketLocation(request.getRocketId(), request.getReceiverType(), request.getNewLocation());
+        return ResponseEntity.ok("로켓의 배치이동이 완료되었습니다.");
     }
 }

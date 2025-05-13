@@ -119,14 +119,14 @@ public class ChestService {
 
         // 현재 이동할 로켓이 있는 보관함 정보 조회
         ChestEntity currentChest = chestRepository.findByRocket_RocketId(rocketId)
-                .orElseThrow(() -> new RuntimeException("Rocket's current chest not found"));
+                .orElseThrow(() -> new ChestNotFoundException("보관함에 해당 로켓이 존재하지 않습니다."));
 
         // 현재 로켓의 receiverType 확인
         String currentReceiverType = currentChest.getRocket().getReceiverType();
 
         // 이동하려는 위치가 같은 receiverType인지 확인
         if (!receiverType.equals(currentReceiverType)) {
-            throw new RuntimeException("Cannot move rocket to a location with a different receiverType.");
+            throw new IllegalStateException("같은 형태의 로켓 수신자 유형끼리는 이동할 수 없습니다.");
         }
 
         // 이동하려는 위치에 이미 보관함이 존재하는지 확인
