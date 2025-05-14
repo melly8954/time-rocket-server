@@ -27,14 +27,14 @@ public class ChestService {
         this.chestRepository = chestRepository;
     }
 
-    public ChestPageResponse getChestList(String rocketName, Pageable pageable) {
+    public ChestPageResponse getChestList(Long userId, String rocketName, Pageable pageable) {
         Page<ChestEntity> findEntity = null;
         if (rocketName == null || rocketName.isEmpty()) {
             // rocketName이 비어있다면, isDeleted = false인 항목만 조회
-            findEntity = this.chestRepository.findByIsDeletedFalse(pageable);
+            findEntity = this.chestRepository.findByIsDeletedFalseAndRocket_ReceiverUser_UserId(userId, pageable);
         } else {
             // rocketName이 존재한다면, 해당 조건을 포함하여 조회
-            findEntity = this.chestRepository.findByIsDeletedFalseAndRocket_RocketNameContaining(rocketName, pageable);
+            findEntity = this.chestRepository.findByIsDeletedFalseAndRocket_ReceiverUser_UserIdAndRocket_RocketNameContaining(userId, rocketName, pageable);
         }
 
         if (findEntity.isEmpty()) {

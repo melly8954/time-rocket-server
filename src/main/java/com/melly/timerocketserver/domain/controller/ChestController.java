@@ -38,7 +38,7 @@ public class ChestController implements ResponseController {
         sortBy = order.equalsIgnoreCase("desc") ? sortBy.descending() : sortBy.ascending();
         Pageable pageable = PageRequest.of(page - 1, size, sortBy);
 
-        ChestPageResponse chestList = this.chestService.getChestList(rocketName, pageable);
+        ChestPageResponse chestList = this.chestService.getChestList(userId, rocketName, pageable);
 
         return makeResponseEntity(HttpStatus.OK, "보관함에 저장된 로켓 목록을 불러왔습니다.", chestList);
     }

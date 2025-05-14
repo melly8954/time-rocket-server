@@ -15,12 +15,13 @@ import java.util.Optional;
 
 @Repository
 public interface ChestRepository extends JpaRepository<ChestEntity, Long> {
-    // is_deleted 가 false 인 보관함 로켓 조회
-    Page<ChestEntity> findByIsDeletedFalse(Pageable pageable);
+    // 회원별 is_deleted 가 false 인 보관함 로켓 조회
+    Page<ChestEntity> findByIsDeletedFalseAndRocket_ReceiverUser_UserId(Long userId, Pageable pageable);
 
-    // ChestEntity 의 rocket 필드를 통해 RocketEntity 에 접근하고, 그 안의 rocketName 필드에 부분 일치 검색을 수행
+
+    // 회원별 ChestEntity 의 rocket 필드를 통해 RocketEntity 에 접근하고, 그 안의 rocketName 필드에 부분 일치 검색을 수행
     // 즉, findBy[isDeletedFalse]And[Rocket_RocketNameContaining] 구조
-    Page<ChestEntity> findByIsDeletedFalseAndRocket_RocketNameContaining(String rocketName, Pageable pageable);
+    Page<ChestEntity> findByIsDeletedFalseAndRocket_ReceiverUser_UserIdAndRocket_RocketNameContaining(Long userId, String rocketName, Pageable pageable);
 
     // 보관함 상세조회
     Optional<ChestEntity> findByChestId(Long chestId);
