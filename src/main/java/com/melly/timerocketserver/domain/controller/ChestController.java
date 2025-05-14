@@ -24,7 +24,7 @@ public class ChestController implements ResponseController {
         this.chestService = chestService;
     }
 
-    // 회원별 보관함 조회
+    // 회원별 보관함 로켓 조회
     @GetMapping("/users/{userId}")
     public ResponseEntity<ResponseDto> getChestList(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
                                                     @RequestParam(required = false, defaultValue = "") String rocketName,
@@ -44,7 +44,7 @@ public class ChestController implements ResponseController {
         return makeResponseEntity(HttpStatus.OK, "보관함에 저장된 로켓 목록을 불러왔습니다.", chestList);
     }
 
-    // 보관함 상세 조회
+    // 보관함 로켓 상세 조회
     @GetMapping("/users/{userId}/details/{chestId}")
     public ResponseEntity<ResponseDto> getChestDetail(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
                                                       @PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
@@ -52,7 +52,7 @@ public class ChestController implements ResponseController {
         return makeResponseEntity(HttpStatus.OK, "보관함의 로켓 상세 정보를 불러왔습니다.", chestDetail);
     }
 
-    // 보관함 배치 이동
+    // 보관함 로켓 배치 이동
     @PatchMapping("/{chestId}/location")
     public ResponseEntity<ResponseDto> moveLocation(@PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId,
                                                @RequestBody LocationMoveRequest request) {
@@ -60,10 +60,17 @@ public class ChestController implements ResponseController {
         return makeResponseEntity(HttpStatus.OK, "로켓의 배치이동이 완료되었습니다.", null);
     }
 
-    // 보관함 공개 여부 변경
+    // 보관함 로켓 공개 여부 변경
     @PatchMapping("/{chestId}/visibility")
     public ResponseEntity<ResponseDto> changeVisibility(@PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
         this.chestService.changeVisibility(chestId);
         return makeResponseEntity(HttpStatus.OK, "로켓의 공개 여부가 변경되었습니다.", null);
+    }
+
+    // 보관함 로켓 삭제
+    @PatchMapping("/{chestId}/deleted-flag")
+    public ResponseEntity<ResponseDto> changeSoftDeletedChest(@PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
+        this.chestService.changeSoftDeletedChest(chestId);
+        return makeResponseEntity(HttpStatus.OK, "로켓이 삭제되었습니다.", null);
     }
 }

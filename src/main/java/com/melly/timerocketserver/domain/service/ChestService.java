@@ -1,10 +1,8 @@
 package com.melly.timerocketserver.domain.service;
 
-import com.melly.timerocketserver.domain.dto.request.LocationMoveRequest;
 import com.melly.timerocketserver.domain.dto.response.ChestDetailResponse;
 import com.melly.timerocketserver.domain.dto.response.ChestPageResponse;
 import com.melly.timerocketserver.domain.entity.ChestEntity;
-import com.melly.timerocketserver.domain.entity.RocketEntity;
 import com.melly.timerocketserver.domain.repository.ChestRepository;
 import com.melly.timerocketserver.domain.repository.RocketRepository;
 import com.melly.timerocketserver.global.exception.ChestNotFoundException;
@@ -12,8 +10,8 @@ import com.melly.timerocketserver.global.exception.RocketNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -132,7 +130,7 @@ public class ChestService {
         // 최종 이동하려는 위치 문자열 ("self-1-5" 같은 형식)
         String targetLocation = receiverType + "-" + newLocation;
 
-        ChestEntity currentChest = chestRepository.findByChestId(chestId)
+        ChestEntity currentChest = this.chestRepository.findByChestId(chestId)
                 .orElseThrow(() -> new ChestNotFoundException("해당 ID의 보관함이 존재하지 않습니다."));
 
         if (currentChest.getRocket() == null) {
@@ -148,7 +146,7 @@ public class ChestService {
         }
 
         // 이동하려는 위치에 이미 보관함이 존재하는지 확인
-        Optional<ChestEntity> chestAtTargetOpt = chestRepository.findByLocationAndRocket_ReceiverUser_UserId(
+        Optional<ChestEntity> chestAtTargetOpt = this.chestRepository.findByLocationAndRocket_ReceiverUser_UserId(
                 targetLocation,
                 currentChest.getRocket().getReceiverUser().getUserId()
         );
@@ -165,18 +163,18 @@ public class ChestService {
             chestAtTarget.setLocation(originalLocation);
 
             // 저장
-            chestRepository.save(currentChest);
-            chestRepository.save(chestAtTarget);
+            this.chestRepository.save(currentChest);
+            this.chestRepository.save(chestAtTarget);
         } else {
             // 해당 위치가 비어 있다면 그냥 이동
             currentChest.setLocation(targetLocation);
-            chestRepository.save(currentChest);
+            this.chestRepository.save(currentChest);
         }
     }
 
     // 보관함 공개 여부 변경 메서드
     public void changeVisibility(Long chestId){
-        ChestEntity chest = chestRepository.findByChestId(chestId)
+        ChestEntity chest = this.chestRepository.findByChestId(chestId)
                 .orElseThrow(() -> new ChestNotFoundException("해당 ID의 보관함이 존재하지 않습니다."));
 
         if (chest.getRocket() == null) {
@@ -191,6 +189,23 @@ public class ChestService {
             chest.setPublicAt(null);
         }
 
-        chestRepository.save(chest);
+        this.chestRepository.save(chest);
+    }
+    
+    // 보관함 로켓 논리 삭제
+    public void changeSoftDeletedChest(Long chestId) {
+        Optional<ChestEntity> findEntity = this.chestRepository.findByChestId(chestId);
+
+        ChestEntity chest = findEntity.orElseThrow(() -> new ChestNotFoundException("해당 ID의 보관함이 존재하지 않습니다."));
+
+        if(chest.getRocket() == null){
+            throw new RocketNotFoundException("보관함에 해당 로켓이 존재하지 않습니다.");
+        }
+        // 논리 삭제
+        if(!chest.getIsDeleted()){
+            chest.setIsDeleted(true);
+            chest.setDeletedAt(LocalDateTime.now());
+        }
+        this.chestRepository.save(chest);
     }
 }
