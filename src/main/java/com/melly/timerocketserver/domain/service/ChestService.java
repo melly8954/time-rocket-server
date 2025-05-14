@@ -28,6 +28,7 @@ public class ChestService {
         this.chestRepository = chestRepository;
     }
 
+    // 보관함 조회
     public ChestPageResponse getChestList(Long userId, String rocketName, Pageable pageable) {
         Page<ChestEntity> findEntity = null;
         if (rocketName == null || rocketName.isEmpty()) {
@@ -38,9 +39,11 @@ public class ChestService {
             findEntity = this.chestRepository.findByIsDeletedFalseAndRocket_ReceiverUser_UserIdAndRocket_RocketNameContaining(userId, rocketName, pageable);
         }
 
+        // Page 객체는 Null 이 존재할 수 없음
         if (findEntity.isEmpty()) {
-            throw new ChestNotFoundException("보관함에 저장된 로켓이 존재하지 않습니다.");
+            throw new ChestNotFoundException("해당 조건에 맞는 결과가 없습니다.");
         }
+
 
         // ChestPageResponse 의 ChestDto 로 변환하여 반환, 자바 스트림 API 사용
         // findEntity.getContent()는 여러 개의 ChestEntity 객체가 담긴 리스트를 반환
@@ -84,11 +87,16 @@ public class ChestService {
                 .sortDirection(sortDirection)
                 .build();
     }
-
+    
+    // 보관함 상세조회 메서드
     public ChestDetailResponse getChestDetail(Long userId, Long chestId) {
         ChestEntity findEntity = this.chestRepository.findByChestId(chestId)
                 .orElseThrow(()-> new ChestNotFoundException("보관함에 저장된 로켓이 존재하지 않습니다."));
 
+        // 보관함의 로켓 존재 검사
+        if(findEntity.getRocket() == null) {
+            throw new RocketNotFoundException("보관함에 해당 로켓이 존재하지 않습니다.");
+        }
 
         // 수신자가 맞는지 확인
         if (!findEntity.getRocket().getReceiverUser().getUserId().equals(userId)) {
@@ -128,7 +136,7 @@ public class ChestService {
                 .orElseThrow(() -> new ChestNotFoundException("해당 ID의 보관함이 존재하지 않습니다."));
 
         if (currentChest.getRocket() == null) {
-            throw new RocketNotFoundException("해당 보관함에는 로켓이 존재하지 않습니다.");
+            throw new RocketNotFoundException("보관함에 해당 로켓이 존재하지 않습니다.");
         }
 
         // 현재 로켓의 receiverType 확인
@@ -164,5 +172,25 @@ public class ChestService {
             currentChest.setLocation(targetLocation);
             chestRepository.save(currentChest);
         }
+    }
+
+    // 보관함 공개 여부 변경 메서드
+    public void changeVisibility(Long chestId){
+        ChestEntity chest = chestRepository.findByChestId(chestId)
+                .orElseThrow(() -> new ChestNotFoundException("해당 ID의 보관함이 존재하지 않습니다."));
+
+        if (chest.getRocket() == null) {
+            throw new RocketNotFoundException("보관함에 해당 로켓이 존재하지 않습니다.");
+        }
+
+        chest.setIsPublic(!chest.getIsPublic()); // 공개 여부 반전
+
+        if (chest.getIsPublic()) {
+            chest.setPublicAt(java.time.LocalDateTime.now());
+        } else {
+            chest.setPublicAt(null);
+        }
+
+        chestRepository.save(chest);
     }
 }
