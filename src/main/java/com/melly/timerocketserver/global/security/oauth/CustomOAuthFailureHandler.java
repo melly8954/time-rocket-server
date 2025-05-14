@@ -7,8 +7,11 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Component
 public class CustomOAuthFailureHandler implements AuthenticationFailureHandler {
@@ -36,7 +39,12 @@ public class CustomOAuthFailureHandler implements AuthenticationFailureHandler {
             errorMessage = "알 수 없는 소셜 로그인 오류가 발생했습니다.";
         }
 
-        String json = String.format("{\"code\":400,\"message\":\"%s\"}", errorMessage);
-        response.getWriter().write(json);
+        // 클라이언트 쪽으로 리다이렉트 + 메시지 전달
+        String redirectUrl = UriComponentsBuilder
+                .fromUriString("http://localhost:5173/oauth/failure")
+                .queryParam("message", URLEncoder.encode(errorMessage, StandardCharsets.UTF_8))
+                .build().toUriString();
+
+        response.sendRedirect(redirectUrl);
     }
 }

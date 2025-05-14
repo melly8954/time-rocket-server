@@ -11,6 +11,7 @@ import com.melly.timerocketserver.global.security.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -38,7 +39,8 @@ public class UserController implements ResponseController {
     }
 
     @GetMapping("/users/duplicate-nickname/{nickname}")
-    public ResponseEntity<ResponseDto> duplicateNickname(@PathVariable String nickname) {
+    public ResponseEntity<ResponseDto> duplicateNickname(@PathVariable @Pattern(regexp = "^[a-zA-Z0-9]{2,}$", message = "닉네임은 영어 또는 숫자로 구성된 2자 이상이어야 합니다.")
+                                                         String nickname) {
         this.userService.duplicateNickname(nickname);
         return makeResponseEntity(HttpStatus.OK, "중복 체크 완료", null);
     }

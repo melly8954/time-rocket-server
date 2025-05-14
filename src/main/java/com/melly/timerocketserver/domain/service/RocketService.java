@@ -86,7 +86,7 @@ public class RocketService {
         String rocketContent = rocketRequestDto.getContent();
 
         UserEntity sender = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("보내는 사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException("송신 회원을 찾을 수 없습니다."));
 
         UserEntity receiver = userRepository.findByEmail(rocketReceiverEmail)
                 .orElse(null);
