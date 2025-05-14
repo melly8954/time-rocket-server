@@ -84,9 +84,15 @@ public class ChestService {
                 .build();
     }
 
-    public ChestDetailResponse getChestDetail(Long chestId) {
+    public ChestDetailResponse getChestDetail(Long userId, Long chestId) {
         ChestEntity findEntity = this.chestRepository.findByChestId(chestId)
                 .orElseThrow(()-> new ChestNotFoundException("보관함에 저장된 로켓이 존재하지 않습니다."));
+
+
+        // 수신자가 맞는지 확인
+        if (!findEntity.getRocket().getReceiverUser().getUserId().equals(userId)) {
+            throw new ChestNotFoundException("본인의 보관함만 조회할 수 있습니다.");
+        }
 
         boolean isLocked = findEntity.getRocket().getIsLock();
         if(isLocked){
