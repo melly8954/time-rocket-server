@@ -8,6 +8,7 @@ import com.melly.timerocketserver.domain.entity.RocketEntity;
 import com.melly.timerocketserver.domain.repository.ChestRepository;
 import com.melly.timerocketserver.domain.repository.RocketRepository;
 import com.melly.timerocketserver.global.exception.ChestNotFoundException;
+import com.melly.timerocketserver.global.exception.RocketNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -119,24 +120,30 @@ public class ChestService {
     }
 
     // 위치 이동 처리 메서드
-    public void moveRocketLocation(Long rocketId, String receiverType, String newLocation) {
+    public void moveRocketLocation(Long chestId, String receiverType, String newLocation) {
         // 최종 이동하려는 위치 문자열 ("self-1-5" 같은 형식)
         String targetLocation = receiverType + "-" + newLocation;
 
-        // 현재 이동할 로켓이 있는 보관함 정보 조회
-        ChestEntity currentChest = chestRepository.findByRocket_RocketId(rocketId)
-                .orElseThrow(() -> new ChestNotFoundException("보관함에 해당 로켓이 존재하지 않습니다."));
+        ChestEntity currentChest = chestRepository.findByChestId(chestId)
+                .orElseThrow(() -> new ChestNotFoundException("해당 ID의 보관함이 존재하지 않습니다."));
+
+        if (currentChest.getRocket() == null) {
+            throw new RocketNotFoundException("해당 보관함에는 로켓이 존재하지 않습니다.");
+        }
 
         // 현재 로켓의 receiverType 확인
         String currentReceiverType = currentChest.getRocket().getReceiverType();
 
-        // 이동하려는 위치가 같은 receiverType인지 확인
+        // 이동하려는 위치가 같은 receiverType 인지 확인
         if (!receiverType.equals(currentReceiverType)) {
             throw new IllegalStateException("같은 형태의 로켓 수신자 유형끼리는 이동할 수 없습니다.");
         }
 
         // 이동하려는 위치에 이미 보관함이 존재하는지 확인
-        Optional<ChestEntity> chestAtTargetOpt = chestRepository.findByLocation(targetLocation);
+        Optional<ChestEntity> chestAtTargetOpt = chestRepository.findByLocationAndRocket_ReceiverUser_UserId(
+                targetLocation,
+                currentChest.getRocket().getReceiverUser().getUserId()
+        );
 
         if (chestAtTargetOpt.isPresent()) {
             // 해당 위치에 다른 로켓이 있다면 위치를 스왑

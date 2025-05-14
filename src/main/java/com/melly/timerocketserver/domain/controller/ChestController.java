@@ -25,7 +25,7 @@ public class ChestController implements ResponseController {
     }
 
     @GetMapping("/users/{userId}")
-    public ResponseEntity<ResponseDto> getChestList(@PathVariable Long userId,
+    public ResponseEntity<ResponseDto> getChestList(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
                                                     @RequestParam(required = false, defaultValue = "") String rocketName,
                                                     @RequestParam int page,
                                                     @RequestParam(defaultValue = "10") int size,
@@ -44,16 +44,17 @@ public class ChestController implements ResponseController {
     }
 
     @GetMapping("/users/{userId}/details/{chestId}")
-    public ResponseEntity<ResponseDto> getChestDetail(@PathVariable Long userId,
+    public ResponseEntity<ResponseDto> getChestDetail(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
                                                       @PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
         ChestDetailResponse chestDetail = this.chestService.getChestDetail(userId, chestId);
         return makeResponseEntity(HttpStatus.OK, "보관함의 로켓 상세 정보를 불러왔습니다.", chestDetail);
     }
 
     // 보관함 배치 이동
-    @PutMapping("/move-location")
-    public ResponseEntity<String> moveLocation(@RequestBody LocationMoveRequest request) {
-        this.chestService.moveRocketLocation(request.getRocketId(), request.getReceiverType(), request.getNewLocation());
+    @PatchMapping("/{chestId}/location")
+    public ResponseEntity<String> moveLocation(@PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId,
+                                               @RequestBody LocationMoveRequest request) {
+        this.chestService.moveRocketLocation(chestId, request.getReceiverType(), request.getNewLocation());
         return ResponseEntity.ok("로켓의 배치이동이 완료되었습니다.");
     }
 }

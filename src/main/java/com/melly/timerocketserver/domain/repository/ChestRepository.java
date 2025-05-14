@@ -32,6 +32,7 @@ public interface ChestRepository extends JpaRepository<ChestEntity, Long> {
                                          @Param("locationPrefix") String locationPrefix,
                                          @Param("receiverType") String receiverType);
 
-    Optional<ChestEntity> findByRocket_RocketId(Long rocketId);
-    Optional<ChestEntity> findByLocation(String location);
+    // 특정 회원의 location 에만 중복이 없어야 하므로, 사용자 ID를 기준으로 location 을 찾음
+    Optional<ChestEntity> findByLocationAndRocket_ReceiverUser_UserId(String location, Long userId);
+
 }
