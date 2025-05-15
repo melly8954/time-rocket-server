@@ -104,6 +104,7 @@ public class ChestService {
         boolean isLocked = findEntity.getRocket().getIsLock();
         if(isLocked){
             ChestDetailResponse detailResponse = ChestDetailResponse.builder()
+                    .rocketId(findEntity.getRocket().getRocketId())
                     .rocketName(findEntity.getRocket().getRocketName())
                     .designUrl(findEntity.getRocket().getDesign())
                     .senderEmail(findEntity.getRocket().getSenderUser().getEmail())
@@ -114,6 +115,7 @@ public class ChestService {
             return detailResponse;
         }else{
             ChestDetailResponse detailResponse = ChestDetailResponse.builder()
+                    .rocketId(findEntity.getRocket().getRocketId())
                     .rocketName(findEntity.getRocket().getRocketName())
                     .designUrl(findEntity.getRocket().getDesign())
                     .senderEmail(findEntity.getRocket().getSenderUser().getEmail())
@@ -147,8 +149,7 @@ public class ChestService {
 
         // 이동하려는 위치에 이미 보관함이 존재하는지 확인
         Optional<ChestEntity> chestAtTargetOpt = this.chestRepository.findByLocationAndRocket_ReceiverUser_UserId(
-                targetLocation,
-                currentChest.getRocket().getReceiverUser().getUserId()
+                targetLocation, currentChest.getRocket().getReceiverUser().getUserId()
         );
 
         if (chestAtTargetOpt.isPresent()) {
@@ -184,7 +185,7 @@ public class ChestService {
         chest.setIsPublic(!chest.getIsPublic()); // 공개 여부 반전
 
         if (chest.getIsPublic()) {
-            chest.setPublicAt(java.time.LocalDateTime.now());
+            chest.setPublicAt(LocalDateTime.now());
         } else {
             chest.setPublicAt(null);
         }
@@ -194,18 +195,17 @@ public class ChestService {
     
     // 보관함 로켓 논리 삭제
     public void changeSoftDeletedChest(Long chestId) {
-        Optional<ChestEntity> findEntity = this.chestRepository.findByChestId(chestId);
+        ChestEntity findEntity = this.chestRepository.findByChestId(chestId)
+                .orElseThrow(() -> new ChestNotFoundException("해당 ID의 보관함이 존재하지 않습니다."));
 
-        ChestEntity chest = findEntity.orElseThrow(() -> new ChestNotFoundException("해당 ID의 보관함이 존재하지 않습니다."));
-
-        if(chest.getRocket() == null){
+        if(findEntity.getRocket() == null){
             throw new RocketNotFoundException("보관함에 해당 로켓이 존재하지 않습니다.");
         }
         // 논리 삭제
-        if(!chest.getIsDeleted()){
-            chest.setIsDeleted(true);
-            chest.setDeletedAt(LocalDateTime.now());
+        if(!findEntity.getIsDeleted()){
+            findEntity.setIsDeleted(true);
+            findEntity.setDeletedAt(LocalDateTime.now());
         }
-        this.chestRepository.save(chest);
+        this.chestRepository.save(findEntity);
     }
 }

@@ -43,4 +43,11 @@ public class RocketController implements ResponseController {
         RocketResponse tempRocket = this.rocketService.getTempRocket(userId);
         return makeResponseEntity(HttpStatus.OK, "임시저장 로켓을 불러왔습니다.", tempRocket);
     }
+
+    // 로켓 잠금 해제
+    @PatchMapping("/{rocketId}/unlocked-rocket")
+    public ResponseEntity<ResponseDto> setLockStatus(@PathVariable @Min(value = 1, message = "rocketId는 1 이상이어야 합니다.") Long rocketId){
+        this.rocketService.setLockStatus(rocketId);
+        return makeResponseEntity(HttpStatus.OK, "로켓의 잠금이 해제되었습니다.", null);
+    }
 }

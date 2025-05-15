@@ -168,4 +168,16 @@ public class RocketService {
             page++;
         }
     }
+
+    public void setLockStatus(Long rocketId) {
+        RocketEntity findEntity = this.rocketRepository.findByRocketId(rocketId)
+                .orElseThrow(()-> new RocketNotFoundException("해당 로켓이 존재하지 않습니다."));
+
+        if(findEntity.getLockExpiredAt().isBefore(LocalDateTime.now())) {
+            throw new IllegalStateException("해당 로켓의 잠금 해제일이 지나지 않았습니다.");
+        }else{
+            findEntity.setIsLock(!findEntity.getIsLock());
+            this.rocketRepository.save(findEntity);
+        }
+    }
 }
