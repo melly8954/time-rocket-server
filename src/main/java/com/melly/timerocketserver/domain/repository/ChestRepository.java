@@ -41,4 +41,6 @@ public interface ChestRepository extends JpaRepository<ChestEntity, Long> {
     // 특정 회원의 location 에만 중복이 없어야 하므로, 사용자 ID를 기준으로 location 을 찾음
     Optional<ChestEntity> findByLocationAndRocket_ReceiverUser_UserId(String location, Long userId);
 
+    // 보관함에서 is_public = true 와 수신자 userId 조건으로 진열장 조회
+    List<ChestEntity> findByIsPublicTrueAndRocket_ReceiverUser_UserId(Long receiverUserId);
 }

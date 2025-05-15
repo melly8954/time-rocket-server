@@ -8,6 +8,7 @@ import com.melly.timerocketserver.global.exception.ChestNotFoundException;
 import com.melly.timerocketserver.global.exception.RocketNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,9 +19,11 @@ import java.util.stream.Collectors;
 @Service
 public class ChestService {
     private final ChestRepository chestRepository;
+    private final DisplayService displayService; // 캐시 갱신용 서비스 의존성 추가
 
-    public ChestService(ChestRepository chestRepository) {
+    public ChestService(ChestRepository chestRepository, DisplayService displayService) {
         this.chestRepository = chestRepository;
+        this.displayService = displayService;
     }
 
     // 보관함 조회
@@ -201,8 +204,11 @@ public class ChestService {
         } else {
             chest.setPublicAt(null);
         }
-
         this.chestRepository.save(chest);
+
+        // 공개 보관함 캐시 갱신
+        this.displayService.updatePublicChestCache(chest.getRocket().getReceiverUser().getUserId());
+
     }
     
     // 보관함 로켓 논리 삭제
