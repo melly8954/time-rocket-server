@@ -77,7 +77,7 @@ public class RocketService {
 
     // 로켓 임시저장
     @Transactional
-    public void tempRocket(Long userId, RocketRequestDto rocketRequestDto) {
+    public void saveTempRocket(Long userId, RocketRequestDto rocketRequestDto) {
         String rocketName = rocketRequestDto.getRocketName();
         String rocketDesign = rocketRequestDto.getDesign();
         LocalDateTime rocketLockExpiredAt = rocketRequestDto.getLockExpiredAt();
@@ -169,7 +169,7 @@ public class RocketService {
         }
     }
 
-    public void setLockStatus(Long rocketId) {
+    public void unlockRocket(Long rocketId) {
         RocketEntity findEntity = this.rocketRepository.findByRocketId(rocketId)
                 .orElseThrow(()-> new RocketNotFoundException("해당 로켓이 존재하지 않습니다."));
 

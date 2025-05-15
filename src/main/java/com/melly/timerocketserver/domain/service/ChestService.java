@@ -186,7 +186,7 @@ public class ChestService {
     }
 
     // 보관함 공개 여부 변경 메서드
-    public void changeVisibility(Long chestId){
+    public void toggleVisibility(Long chestId){
         ChestEntity chest = this.chestRepository.findByChestId(chestId)
                 .orElseThrow(() -> new ChestNotFoundException("해당 ID의 보관함이 존재하지 않습니다."));
 
@@ -206,7 +206,7 @@ public class ChestService {
     }
     
     // 보관함 로켓 논리 삭제
-    public void changeSoftDeletedChest(Long chestId) {
+    public void softDeleteChest(Long chestId) {
         ChestEntity findEntity = this.chestRepository.findByChestId(chestId)
                 .orElseThrow(() -> new ChestNotFoundException("해당 ID의 보관함이 존재하지 않습니다."));
 

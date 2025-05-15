@@ -31,9 +31,9 @@ public class RocketController implements ResponseController {
     
     // 로켓 임시저장
     @PostMapping("/users/{userId}/temp")
-    public ResponseEntity<ResponseDto> tempRocket(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
+    public ResponseEntity<ResponseDto> saveTempRocket(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
                                                   @RequestBody RocketRequestDto rocketRequestDto) {
-        this.rocketService.tempRocket(userId, rocketRequestDto);
+        this.rocketService.saveTempRocket(userId, rocketRequestDto);
         return makeResponseEntity(HttpStatus.OK, "로켓이 임시저장 되었습니다.", null);
     }
     
@@ -46,8 +46,8 @@ public class RocketController implements ResponseController {
 
     // 로켓 잠금 해제
     @PatchMapping("/{rocketId}/unlocked-rocket")
-    public ResponseEntity<ResponseDto> setLockStatus(@PathVariable @Min(value = 1, message = "rocketId는 1 이상이어야 합니다.") Long rocketId){
-        this.rocketService.setLockStatus(rocketId);
+    public ResponseEntity<ResponseDto> unlockRocket(@PathVariable @Min(value = 1, message = "rocketId는 1 이상이어야 합니다.") Long rocketId){
+        this.rocketService.unlockRocket(rocketId);
         return makeResponseEntity(HttpStatus.OK, "로켓의 잠금이 해제되었습니다.", null);
     }
 }
