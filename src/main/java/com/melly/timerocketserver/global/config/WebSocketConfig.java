@@ -1,6 +1,6 @@
 package com.melly.timerocketserver.global.config;
 
-import com.melly.timerocketserver.global.websocket.handler.ChatWebSocketHandler;
+import com.melly.timerocketserver.websocket.handler.ChatWebSocketHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
