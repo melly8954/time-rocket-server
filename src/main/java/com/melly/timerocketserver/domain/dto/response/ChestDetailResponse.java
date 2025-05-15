@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class ChestDetailResponse {
+    private Long rocketId;
     private String rocketName;
     private String designUrl;
     private String senderEmail;

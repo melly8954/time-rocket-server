@@ -15,13 +15,19 @@ import java.util.Optional;
 
 @Repository
 public interface ChestRepository extends JpaRepository<ChestEntity, Long> {
-    // 회원별 is_deleted 가 false 인 보관함 로켓 조회
+    // 받은 로켓 (receiver 기준), 회원별 is_deleted 가 false 인 보관함 로켓 조회
     Page<ChestEntity> findByIsDeletedFalseAndRocket_ReceiverUser_UserId(Long userId, Pageable pageable);
-
-
     // 회원별 ChestEntity 의 rocket 필드를 통해 RocketEntity 에 접근하고, 그 안의 rocketName 필드에 부분 일치 검색을 수행
     // 즉, findBy[isDeletedFalse]And[Rocket_RocketNameContaining] 구조
     Page<ChestEntity> findByIsDeletedFalseAndRocket_ReceiverUser_UserIdAndRocket_RocketNameContaining(Long userId, String rocketName, Pageable pageable);
+    // 받은 로켓의 개수 (isDeleted = false)
+    Long countByIsDeletedFalseAndRocket_ReceiverUser_UserId(Long userId);
+
+    // 보낸 로켓 (sender 기준)
+    Page<ChestEntity> findByIsDeletedFalseAndRocket_SenderUser_UserId(Long userId, Pageable pageable);
+    Page<ChestEntity> findByIsDeletedFalseAndRocket_SenderUser_UserIdAndRocket_RocketNameContaining(Long userId, String rocketName, Pageable pageable);
+    // 보낸 로켓의 개수 (isDeleted = false)
+    Long countByIsDeletedFalseAndRocket_SenderUser_UserId(Long userId);
 
     // 보관함 상세조회
     Optional<ChestEntity> findByChestId(Long chestId);
