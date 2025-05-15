@@ -4,7 +4,6 @@ import com.melly.timerocketserver.domain.dto.response.ChestDetailResponse;
 import com.melly.timerocketserver.domain.dto.response.ChestPageResponse;
 import com.melly.timerocketserver.domain.entity.ChestEntity;
 import com.melly.timerocketserver.domain.repository.ChestRepository;
-import com.melly.timerocketserver.domain.repository.RocketRepository;
 import com.melly.timerocketserver.global.exception.ChestNotFoundException;
 import com.melly.timerocketserver.global.exception.RocketNotFoundException;
 import org.springframework.data.domain.Page;
@@ -18,29 +17,40 @@ import java.util.stream.Collectors;
 
 @Service
 public class ChestService {
-    private final RocketRepository rocketRepository;
     private final ChestRepository chestRepository;
 
-    public ChestService(RocketRepository rocketRepository, ChestRepository chestRepository) {
-        this.rocketRepository = rocketRepository;
+    public ChestService(ChestRepository chestRepository) {
         this.chestRepository = chestRepository;
     }
 
     // 보관함 조회
-    public ChestPageResponse getChestList(Long userId, String rocketName, Pageable pageable) {
-        Page<ChestEntity> findEntity = null;
-        if (rocketName == null || rocketName.isEmpty()) {
-            // rocketName이 비어있다면, isDeleted = false인 항목만 조회
-            findEntity = this.chestRepository.findByIsDeletedFalseAndRocket_ReceiverUser_UserId(userId, pageable);
+    public ChestPageResponse getChestList(Long userId, String rocketName, Pageable pageable, String type) {
+        Page<ChestEntity> findEntity;
+        if (type.equals("received")) {
+            if (rocketName == null || rocketName.isEmpty()) {
+                findEntity = chestRepository.findByIsDeletedFalseAndRocket_ReceiverUser_UserId(userId, pageable);
+            } else {
+                findEntity = chestRepository.findByIsDeletedFalseAndRocket_ReceiverUser_UserIdAndRocket_RocketNameContaining(userId, rocketName, pageable);
+            }
+        } else if (type.equals("sent")) {
+            if (rocketName == null || rocketName.isEmpty()) {
+                findEntity = chestRepository.findByIsDeletedFalseAndRocket_SenderUser_UserId(userId, pageable);
+            } else {
+                findEntity = chestRepository.findByIsDeletedFalseAndRocket_SenderUser_UserIdAndRocket_RocketNameContaining(userId, rocketName, pageable);
+            }
         } else {
-            // rocketName이 존재한다면, 해당 조건을 포함하여 조회
-            findEntity = this.chestRepository.findByIsDeletedFalseAndRocket_ReceiverUser_UserIdAndRocket_RocketNameContaining(userId, rocketName, pageable);
+            throw new IllegalArgumentException("type 은 'sent' 또는 'received'여야 합니다.");
         }
 
         // Page 객체는 Null 이 존재할 수 없음
         if (findEntity.isEmpty()) {
             throw new ChestNotFoundException("해당 조건에 맞는 결과가 없습니다.");
         }
+
+
+        // 보관함 탭마다 로켓 갯수
+        Long receivedCount = chestRepository.countByIsDeletedFalseAndRocket_ReceiverUser_UserId(userId);
+        Long sentCount = chestRepository.countByIsDeletedFalseAndRocket_SenderUser_UserId(userId);
 
 
         // ChestPageResponse 의 ChestDto 로 변환하여 반환, 자바 스트림 API 사용
@@ -83,6 +93,8 @@ public class ChestService {
                 .last(findEntity.isLast())
                 .sortBy(sortBy)
                 .sortDirection(sortDirection)
+                .receivedCount(receivedCount)
+                .sentCount(sentCount)
                 .build();
     }
     

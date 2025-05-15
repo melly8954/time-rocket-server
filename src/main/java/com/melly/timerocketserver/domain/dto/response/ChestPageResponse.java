@@ -16,12 +16,14 @@ public class ChestPageResponse {
     private List<ChestDto> chests;
     private int currentPage;
     private int pageSize;
-    private long totalElements;
+    private Long totalElements;
     private int totalPages;
     private boolean first;
     private boolean last;
     private String sortBy;
     private String sortDirection;
+    private Long receivedCount;
+    private Long sentCount;
 
     @Getter
     @Setter
