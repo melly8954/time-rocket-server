@@ -1,4 +1,4 @@
-package com.melly.timerocketserver.global.logging;
+package com.melly.timerocketserver.logging;
 
 import com.p6spy.engine.logging.Category;
 import com.p6spy.engine.spy.appender.MessageFormattingStrategy;
