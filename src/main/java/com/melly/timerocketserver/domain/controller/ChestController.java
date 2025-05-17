@@ -54,7 +54,7 @@ public class ChestController implements ResponseController {
     }
 
     // 보관함 로켓 배치 이동
-    @PatchMapping("/{chestId}/location")
+    @PatchMapping("/{chestId}/chest-location")
     public ResponseEntity<ResponseDto> moveLocation(@PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId,
                                                @RequestBody ChestLocationMoveRequest request) {
         this.chestService.moveRocketChestLocation(chestId, request.getReceiverType(), request.getNewLocation());
@@ -73,5 +73,12 @@ public class ChestController implements ResponseController {
     public ResponseEntity<ResponseDto> softDeleteChest(@PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
         this.chestService.softDeleteChest(chestId);
         return makeResponseEntity(HttpStatus.OK, "로켓이 삭제되었습니다.", null);
+    }
+
+    // 보관함 로켓 복구
+    @PatchMapping("/{chestId}/restoration")
+    public ResponseEntity<ResponseDto> restoreDeletedChest(@PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
+        this.chestService.restoreDeletedChest(chestId);
+        return makeResponseEntity(HttpStatus.OK,"삭제된 로켓의 복구를 성공했습니다.",null);
     }
 }

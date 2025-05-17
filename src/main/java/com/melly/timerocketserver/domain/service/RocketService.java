@@ -139,7 +139,7 @@ public class RocketService {
     }
 
     // 로켓 전송 시 보관함에 생성되는 배치설정 ( self-1-5 )
-    private String generateRandomChestLocation(Long userId, String receiverType) {
+    public String generateRandomChestLocation(Long userId, String receiverType) {
         int page = 1;
         while (true) {
             // page를 String 형태로 만들어서 전달
