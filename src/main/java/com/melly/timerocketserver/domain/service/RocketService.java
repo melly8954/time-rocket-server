@@ -69,7 +69,7 @@ public class RocketService {
                 .rocket(rocket)
                 .isPublic(false)
                 .publicAt(null)
-                .location(generateRandomLocation(receiver.getUserId(), rocket.getReceiverType()))
+                .chestLocation(generateRandomLocation(receiver.getUserId(), rocket.getReceiverType()))
                 .isDeleted(false)
                 .build();
         chestRepository.save(chest);
@@ -144,7 +144,7 @@ public class RocketService {
         while (true) {
             // page를 String 형태로 만들어서 전달
             String locationPrefix = receiverType + "-" + page + "-%";
-            List<String> existingLocations = chestRepository.findLocationsByReceiver(userId, locationPrefix, receiverType);
+            List<String> existingLocations = chestRepository.findChestLocationsByReceiver(userId, locationPrefix, receiverType);
 
             Set<String> usedSet = new HashSet<>(existingLocations);
             List<String> available = new ArrayList<>();

@@ -1,6 +1,6 @@
 package com.melly.timerocketserver.domain.controller;
 
-import com.melly.timerocketserver.domain.dto.request.LocationMoveRequest;
+import com.melly.timerocketserver.domain.dto.request.ChestLocationMoveRequest;
 import com.melly.timerocketserver.domain.dto.response.ChestDetailResponse;
 import com.melly.timerocketserver.domain.dto.response.ChestPageResponse;
 import com.melly.timerocketserver.domain.service.ChestService;
@@ -56,8 +56,8 @@ public class ChestController implements ResponseController {
     // 보관함 로켓 배치 이동
     @PatchMapping("/{chestId}/location")
     public ResponseEntity<ResponseDto> moveLocation(@PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId,
-                                               @RequestBody LocationMoveRequest request) {
-        this.chestService.moveRocketLocation(chestId, request.getReceiverType(), request.getNewLocation());
+                                               @RequestBody ChestLocationMoveRequest request) {
+        this.chestService.moveRocketChestLocation(chestId, request.getReceiverType(), request.getNewLocation());
         return makeResponseEntity(HttpStatus.OK, "로켓의 배치이동이 완료되었습니다.", null);
     }
 

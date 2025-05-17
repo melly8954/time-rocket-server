@@ -13,6 +13,7 @@ public class PublicChestDto {
     private Long rocketId;
     private String rocketName;
     private String designUrl;
+    private String rocketReceiveType;
     private String senderEmail;
     private String receiverNickname;
     private String content;
@@ -24,9 +25,10 @@ public class PublicChestDto {
         this.rocketId = chestEntity.getRocket().getRocketId();
         this.rocketName = chestEntity.getRocket().getRocketName();
         this.designUrl = chestEntity.getRocket().getDesign();
+        this.rocketReceiveType = chestEntity.getRocket().getReceiverType();
         this.senderEmail = chestEntity.getRocket().getSenderUser().getEmail();
         this.receiverNickname = chestEntity.getRocket().getReceiverUser().getNickname();
         this.content = chestEntity.getRocket().getContent();
-        this.location = chestEntity.getLocation();
+        this.location = chestEntity.getChestLocation();
     }
 }

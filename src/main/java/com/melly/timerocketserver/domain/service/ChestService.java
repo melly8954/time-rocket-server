@@ -71,7 +71,7 @@ public class ChestService {
                         .lockExpiredAt(chest.getRocket().getLockExpiredAt())
                         .isPublic(chest.getIsPublic())
                         .publicAt(chest.getPublicAt())
-                        .location(chest.getLocation())
+                        .location(chest.getChestLocation())
                         .build())
                 .collect(Collectors.toList());  // 스트림에 담긴 요소들을 하나의 리스트로 모으는 역할
 
@@ -142,7 +142,7 @@ public class ChestService {
     }
 
     // 위치 이동 처리 메서드
-    public void moveRocketLocation(Long chestId, String receiverType, String newLocation) {
+    public void moveRocketChestLocation(Long chestId, String receiverType, String newLocation) {
         // 최종 이동하려는 위치 문자열 ("self-1-5" 같은 형식)
         String targetLocation = receiverType + "-" + newLocation;
 
@@ -162,7 +162,7 @@ public class ChestService {
         }
 
         // 이동하려는 위치에 이미 보관함이 존재하는지 확인
-        Optional<ChestEntity> chestAtTargetOpt = this.chestRepository.findByLocationAndRocket_ReceiverUser_UserId(
+        Optional<ChestEntity> chestAtTargetOpt = this.chestRepository.findByChestLocationAndRocket_ReceiverUser_UserId(
                 targetLocation, currentChest.getRocket().getReceiverUser().getUserId()
         );
 
@@ -171,18 +171,18 @@ public class ChestService {
             ChestEntity chestAtTarget = chestAtTargetOpt.get();
 
             // 기존 위치 저장
-            String originalLocation = currentChest.getLocation();
+            String originalLocation = currentChest.getChestLocation();
 
             // 위치 교환
-            currentChest.setLocation(targetLocation);
-            chestAtTarget.setLocation(originalLocation);
+            currentChest.setChestLocation(targetLocation);
+            chestAtTarget.setChestLocation(originalLocation);
 
             // 저장
             this.chestRepository.save(currentChest);
             this.chestRepository.save(chestAtTarget);
         } else {
             // 해당 위치가 비어 있다면 그냥 이동
-            currentChest.setLocation(targetLocation);
+            currentChest.setChestLocation(targetLocation);
             this.chestRepository.save(currentChest);
         }
     }
