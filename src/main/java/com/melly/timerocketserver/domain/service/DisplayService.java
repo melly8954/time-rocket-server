@@ -49,8 +49,8 @@ public class DisplayService {
         return displayList;
     }
 
-    // 캐시 직접 갱신용 메서드
-    public void updatePublicChestCache(Long userId) {
+    // 진열장 캐시  ㅊㅍ 갱신용 메서드
+    public void updateDisplayCache(Long userId) {
         List<ChestEntity> chestEntities = this.chestRepository.findByIsPublicTrueAndRocket_ReceiverUser_UserId(userId);
 
         List<PublicChestDto> displayList = chestEntities.stream()

@@ -3,46 +3,65 @@ package com.melly.timerocketserver.domain.service;
 import com.melly.timerocketserver.domain.dto.response.ChestDetailResponse;
 import com.melly.timerocketserver.domain.dto.response.ChestPageResponse;
 import com.melly.timerocketserver.domain.entity.ChestEntity;
+import com.melly.timerocketserver.domain.entity.RocketEntity;
 import com.melly.timerocketserver.domain.repository.ChestRepository;
 import com.melly.timerocketserver.global.exception.ChestNotFoundException;
 import com.melly.timerocketserver.global.exception.RocketNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class ChestService {
     private final ChestRepository chestRepository;
+    private final RocketService rocketService;
     private final DisplayService displayService; // 캐시 갱신용 서비스 의존성 추가
 
-    public ChestService(ChestRepository chestRepository, DisplayService displayService) {
+    public ChestService(ChestRepository chestRepository, RocketService rocketService, DisplayService displayService) {
         this.chestRepository = chestRepository;
+        this.rocketService = rocketService;
         this.displayService = displayService;
     }
 
     // 보관함 조회
-    public ChestPageResponse getChestList(Long userId, String rocketName, Pageable pageable, String type) {
+    public ChestPageResponse getChestList(Long userId, String rocketName, Pageable pageable, String type, String receiverType) {
         Page<ChestEntity> findEntity;
         if (type.equals("received")) {
-            if (rocketName == null || rocketName.isEmpty()) {
-                findEntity = chestRepository.findByIsDeletedFalseAndRocket_ReceiverUser_UserId(userId, pageable);
-            } else {
-                findEntity = chestRepository.findByIsDeletedFalseAndRocket_ReceiverUser_UserIdAndRocket_RocketNameContaining(userId, rocketName, pageable);
+            // receiverType이 없거나 잘못된 값인 경우 예외 처리
+            if (receiverType == null || receiverType.isBlank()) {
+                throw new IllegalArgumentException("receiverType 은 'received' 타입일 때 필수입니다.");
             }
+
+            if (!receiverType.equals("self") && !receiverType.equals("other") && !receiverType.equals("group")) {
+                throw new IllegalArgumentException("receiverType 은 'self', 'other', 'group' 중 하나여야 합니다.");
+            }
+
+            // receiverType과 rocketName 여부에 따라 조회
+            if (rocketName == null || rocketName.isEmpty()) {
+                findEntity = chestRepository.findByIsDeletedFalseAndRocket_ReceiverUser_UserIdAndRocket_ReceiverType(
+                        userId, receiverType, pageable);
+            } else {
+                findEntity = chestRepository.findByIsDeletedFalseAndRocket_ReceiverUser_UserIdAndRocket_ReceiverTypeAndRocket_RocketNameContaining(
+                        userId, receiverType, rocketName, pageable);
+            }
+
         } else if (type.equals("sent")) {
+            // 보낸 로켓 목록 조회
             if (rocketName == null || rocketName.isEmpty()) {
-                findEntity = chestRepository.findByIsDeletedFalseAndRocket_SenderUser_UserId(userId, pageable);
+                findEntity = chestRepository.findByIsDeletedFalseAndRocket_SenderUser_UserId(
+                        userId, pageable);
             } else {
-                findEntity = chestRepository.findByIsDeletedFalseAndRocket_SenderUser_UserIdAndRocket_RocketNameContaining(userId, rocketName, pageable);
+                findEntity = chestRepository.findByIsDeletedFalseAndRocket_SenderUser_UserIdAndRocket_RocketNameContaining(
+                        userId, rocketName, pageable);
             }
+
         } else {
-            throw new IllegalArgumentException("type 은 'sent' 또는 'received'여야 합니다.");
+            throw new IllegalArgumentException("type 은 'sent' 또는 'received' 만 가능합니다.");
         }
 
         // Page 객체는 Null 이 존재할 수 없음
@@ -72,7 +91,7 @@ public class ChestService {
                         .lockExpiredAt(chest.getRocket().getLockExpiredAt())
                         .isPublic(chest.getIsPublic())
                         .publicAt(chest.getPublicAt())
-                        .location(chest.getLocation())
+                        .chestLocation(chest.getChestLocation())
                         .build())
                 .collect(Collectors.toList());  // 스트림에 담긴 요소들을 하나의 리스트로 모으는 역할
 
@@ -103,7 +122,7 @@ public class ChestService {
     
     // 보관함 상세조회 메서드
     public ChestDetailResponse getChestDetail(Long userId, Long chestId) {
-        ChestEntity findEntity = this.chestRepository.findByChestId(chestId)
+        ChestEntity findEntity = this.chestRepository.findByChestIdAndIsDeletedFalse(chestId)
                 .orElseThrow(()-> new ChestNotFoundException("보관함에 저장된 로켓이 존재하지 않습니다."));
 
         // 보관함의 로켓 존재 검사
@@ -118,7 +137,7 @@ public class ChestService {
 
         boolean isLocked = findEntity.getRocket().getIsLock();
         if(isLocked){
-            ChestDetailResponse detailResponse = ChestDetailResponse.builder()
+            return ChestDetailResponse.builder()
                     .rocketId(findEntity.getRocket().getRocketId())
                     .rocketName(findEntity.getRocket().getRocketName())
                     .designUrl(findEntity.getRocket().getDesign())
@@ -127,9 +146,8 @@ public class ChestService {
                     .lockExpiredAt(findEntity.getRocket().getLockExpiredAt())
                     .isLocked(findEntity.getRocket().getIsLock())
                     .build();
-            return detailResponse;
         }else{
-            ChestDetailResponse detailResponse = ChestDetailResponse.builder()
+            return ChestDetailResponse.builder()
                     .rocketId(findEntity.getRocket().getRocketId())
                     .rocketName(findEntity.getRocket().getRocketName())
                     .designUrl(findEntity.getRocket().getDesign())
@@ -138,83 +156,85 @@ public class ChestService {
                     .content(findEntity.getRocket().getContent())
                     .isLocked(findEntity.getRocket().getIsLock())
                     .build();
-            return detailResponse;
         }
     }
+
 
     // 위치 이동 처리 메서드
-    public void moveRocketLocation(Long chestId, String receiverType, String newLocation) {
-        // 최종 이동하려는 위치 문자열 ("self-1-5" 같은 형식)
-        String targetLocation = receiverType + "-" + newLocation;
+    @Transactional
+    public void moveRocketChestLocation(Long sourceChestId, Long targetChestId) {
+        ChestEntity sourceChest = chestRepository.findByChestIdAndIsDeletedFalse(sourceChestId)
+                .orElseThrow(() -> new ChestNotFoundException("출발지 보관함이 존재하지 않거나 삭제된 상태입니다."));
 
-        ChestEntity currentChest = this.chestRepository.findByChestId(chestId)
-                .orElseThrow(() -> new ChestNotFoundException("해당 ID의 보관함이 존재하지 않습니다."));
+        ChestEntity targetChest = chestRepository.findByChestIdAndIsDeletedFalse(targetChestId)
+                .orElseThrow(() -> new ChestNotFoundException("도착지 보관함이 존재하지 않거나 삭제된 상태입니다."));
 
-        if (currentChest.getRocket() == null) {
-            throw new RocketNotFoundException("보관함에 해당 로켓이 존재하지 않습니다.");
+        if (sourceChest.getRocket() == null || targetChest.getRocket() == null) {
+            throw new RocketNotFoundException("출발지 또는 도착지 보관함에 로켓이 존재하지 않습니다.");
         }
 
-        // 현재 로켓의 receiverType 확인
-        String currentReceiverType = currentChest.getRocket().getReceiverType();
+        String sourceReceiverType = sourceChest.getRocket().getReceiverType();
+        String targetReceiverType = targetChest.getRocket().getReceiverType();
 
-        // 이동하려는 위치가 같은 receiverType 인지 확인
-        if (!receiverType.equals(currentReceiverType)) {
-            throw new IllegalStateException("같은 형태의 로켓 수신자 유형끼리는 이동할 수 없습니다.");
+        if (!sourceReceiverType.equals(targetReceiverType)) {
+            throw new IllegalStateException("로켓 수신자 유형이 일치하지 않아 이동할 수 없습니다.");
         }
 
-        // 이동하려는 위치에 이미 보관함이 존재하는지 확인
-        Optional<ChestEntity> chestAtTargetOpt = this.chestRepository.findByLocationAndRocket_ReceiverUser_UserId(
-                targetLocation, currentChest.getRocket().getReceiverUser().getUserId()
-        );
+        Long sourceLocation = sourceChest.getChestLocation();
+        Long targetLocation = targetChest.getChestLocation();
 
-        if (chestAtTargetOpt.isPresent()) {
-            // 해당 위치에 다른 로켓이 있다면 위치를 스왑
-            ChestEntity chestAtTarget = chestAtTargetOpt.get();
+        Long tempLocation = -9999999L; // 안전한 임시값
 
-            // 기존 위치 저장
-            String originalLocation = currentChest.getLocation();
+        // 1. source -> 임시값
+        chestRepository.updateChestLocation(sourceChestId, tempLocation);
 
-            // 위치 교환
-            currentChest.setLocation(targetLocation);
-            chestAtTarget.setLocation(originalLocation);
+        // 2. target -> source 위치
+        chestRepository.updateChestLocation(targetChestId, sourceLocation);
 
-            // 저장
-            this.chestRepository.save(currentChest);
-            this.chestRepository.save(chestAtTarget);
-        } else {
-            // 해당 위치가 비어 있다면 그냥 이동
-            currentChest.setLocation(targetLocation);
-            this.chestRepository.save(currentChest);
-        }
+        // 3. source(임시값) -> target 위치
+        chestRepository.updateChestLocation(sourceChestId, targetLocation);
     }
 
-    // 보관함 공개 여부 변경 메서드
-    public void toggleVisibility(Long chestId){
-        ChestEntity chest = this.chestRepository.findByChestId(chestId)
-                .orElseThrow(() -> new ChestNotFoundException("해당 ID의 보관함이 존재하지 않습니다."));
-
-        if (chest.getRocket() == null) {
-            throw new RocketNotFoundException("보관함에 해당 로켓이 존재하지 않습니다.");
-        }
-
-        chest.setIsPublic(!chest.getIsPublic()); // 공개 여부 반전
-
-        if (chest.getIsPublic()) {
-            chest.setPublicAt(LocalDateTime.now());
-        } else {
-            chest.setPublicAt(null);
-        }
-        this.chestRepository.save(chest);
-
-        // 공개 보관함 캐시 갱신
-        this.displayService.updatePublicChestCache(chest.getRocket().getReceiverUser().getUserId());
-
-    }
-    
+//    @Transactional
+//    // 보관함 공개 여부 변경 메서드
+//    public void toggleVisibility(Long chestId){
+//        ChestEntity chest = this.chestRepository.findByChestIdAndIsDeletedFalse(chestId)
+//                .orElseThrow(() -> new ChestNotFoundException("해당 ID의 보관함이 존재하지 않거나 삭제된 상태입니다."));
+//
+//        if (chest.getRocket() == null) {
+//            throw new RocketNotFoundException("보관함에 해당 로켓이 존재하지 않습니다.");
+//        }
+//
+//        // 공개 여부 반전
+//        boolean willBePublic = !chest.getIsPublic();
+//        chest.setIsPublic(willBePublic);
+//
+//        if (willBePublic) {
+//            chest.setPublicAt(LocalDateTime.now());
+//            // 공개 시 진열장 위치 배정
+//            String displayLoc = generateDisplayLocation(
+//                    chest.getRocket().getReceiverUser().getUserId(),
+//                    chest.getRocket().getReceiverType()
+//            );
+//            chest.setDisplayLocation(displayLoc);
+//        } else {
+//            chest.setPublicAt(null);
+//
+//            // 💡 비공개로 변경 시 진열장 위치 제거
+//            chest.setDisplayLocation(null);
+//        }
+//
+//        this.chestRepository.save(chest);
+//
+//        // 진열장 캐시 갱신
+//        this.displayService.updateDisplayCache(chest.getRocket().getReceiverUser().getUserId());
+//
+//    }
+//
     // 보관함 로켓 논리 삭제
     public void softDeleteChest(Long chestId) {
-        ChestEntity findEntity = this.chestRepository.findByChestId(chestId)
-                .orElseThrow(() -> new ChestNotFoundException("해당 ID의 보관함이 존재하지 않습니다."));
+        ChestEntity findEntity = this.chestRepository.findByChestIdAndIsDeletedFalse(chestId)
+                .orElseThrow(() -> new ChestNotFoundException("해당 ID의 보관함이 존재하지 않거나 삭제된 상태입니다."));
 
         if(findEntity.getRocket() == null){
             throw new RocketNotFoundException("보관함에 해당 로켓이 존재하지 않습니다.");
@@ -223,7 +243,58 @@ public class ChestService {
         if(!findEntity.getIsDeleted()){
             findEntity.setIsDeleted(true);
             findEntity.setDeletedAt(LocalDateTime.now());
+            findEntity.setDisplayLocation(null);
+            findEntity.setIsPublic(false);
+            findEntity.setPublicAt(null);
+
         }
         this.chestRepository.save(findEntity);
     }
+//
+//    // 로켓 공개 변환 시 작동하는 진열장 배치 저장 메서드
+//    private String generateDisplayLocation(Long userId, String receiverType) {
+//        int page = 1;
+//        while (true) {
+//            String locationPrefix = receiverType + "-" + page + "-%";
+//
+//            // 💡 displayLocation 기준으로 사용 중인 위치 조회
+//            List<String> existingDisplayLocations = chestRepository.findDisplayLocationsByReceiver(userId, locationPrefix, receiverType);
+//
+//            Set<String> used = new HashSet<>(existingDisplayLocations);
+//            List<String> available = new ArrayList<>();
+//
+//            for (int i = 1; i <= 10; i++) {
+//                String loc = receiverType + "-" + page + "-" + i;
+//                if (!used.contains(loc)) {
+//                    available.add(loc);
+//                }
+//            }
+//
+//            if (!available.isEmpty()) {
+//                Collections.shuffle(available);
+//                return available.get(0);
+//            }
+//
+//            page++;
+//        }
+//    }
+
+//    @Transactional
+//    // 삭제된 로켓 복구 메서드
+//    public void restoreDeletedChest(Long chestId) {
+//        ChestEntity findEntity = this.chestRepository.findByChestIdAndIsDeletedTrue(chestId)
+//                .orElseThrow(() -> new ChestNotFoundException("해당 ID의 보관함이 존재하지 않거나 삭제되지 않은 상태입니다."));
+//
+//        if(findEntity.getRocket() == null){
+//            throw new RocketNotFoundException("보관함에 해당 로켓이 존재하지 않습니다.");
+//        }
+//        // 복구
+//        if(findEntity.getIsDeleted()){
+//            findEntity.setIsDeleted(false);
+//            findEntity.setDeletedAt(null);
+//            findEntity.setChestLocation(rocketService.generateRandomChestLocation(findEntity.getRocket().getReceiverUser().getUserId(),
+//                                        findEntity.getRocket().getReceiverType()));
+//        }
+//        this.chestRepository.save(findEntity);
+//    }
 }
