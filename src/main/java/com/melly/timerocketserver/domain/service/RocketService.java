@@ -69,7 +69,7 @@ public class RocketService {
                 .rocket(rocket)
                 .isPublic(false)
                 .publicAt(null)
-                .chestLocation(generateRandomChestLocation(receiver.getUserId(), rocket.getReceiverType()))
+                .chestLocation(generateNextChestLocation())
                 .isDeleted(false)
                 .build();
         chestRepository.save(chest);
@@ -138,36 +138,36 @@ public class RocketService {
                 .build();
     }
 
-    // 로켓 전송 시 보관함에 생성되는 배치설정 ( self-1-5 )
-    public String generateRandomChestLocation(Long userId, String receiverType) {
-        int page = 1;
-        while (true) {
-            // page를 String 형태로 만들어서 전달
-            String locationPrefix = receiverType + "-" + page + "-%";
-            List<String> existingLocations = chestRepository.findChestLocationsByReceiver(userId, locationPrefix, receiverType);
-
-            Set<String> usedSet = new HashSet<>(existingLocations);
-            List<String> available = new ArrayList<>();
-
-            // 1부터 10까지 위치 확인
-            for (int i = 1; i <= 10; i++) {
-                // receiverType에 따라 구분된 위치 사용
-                String loc = receiverType + "-" + page + "-" + i;  // self 와 other 그리고 group 을 구분
-                if (!usedSet.contains(loc)) {
-                    available.add(loc);
-                }
-            }
-
-            if (!available.isEmpty()) {
-                // 랜덤하게 하나 선택
-                Collections.shuffle(available);
-                return available.get(0);
-            }
-
-            // 현재 페이지가 다 찼으면 → 다음 페이지 확인
-            page++;
-        }
-    }
+//    // 로켓 전송 시 보관함에 생성되는 배치설정 ( self-1-5 )
+//    public String generateRandomChestLocation(Long userId, String receiverType) {
+//        int page = 1;
+//        while (true) {
+//            // page를 String 형태로 만들어서 전달
+//            String locationPrefix = receiverType + "-" + page + "-%";
+//            List<String> existingLocations = chestRepository.findChestLocationsByReceiver(userId, locationPrefix, receiverType);
+//
+//            Set<String> usedSet = new HashSet<>(existingLocations);
+//            List<String> available = new ArrayList<>();
+//
+//            // 1부터 10까지 위치 확인
+//            for (int i = 1; i <= 10; i++) {
+//                // receiverType에 따라 구분된 위치 사용
+//                String loc = receiverType + "-" + page + "-" + i;  // self 와 other 그리고 group 을 구분
+//                if (!usedSet.contains(loc)) {
+//                    available.add(loc);
+//                }
+//            }
+//
+//            if (!available.isEmpty()) {
+//                // 랜덤하게 하나 선택
+//                Collections.shuffle(available);
+//                return available.get(0);
+//            }
+//
+//            // 현재 페이지가 다 찼으면 → 다음 페이지 확인
+//            page++;
+//        }
+//    }
 
     public void unlockRocket(Long rocketId) {
         RocketEntity findEntity = this.rocketRepository.findByRocketId(rocketId)
@@ -179,5 +179,11 @@ public class RocketService {
             findEntity.setIsLock(!findEntity.getIsLock());
             this.rocketRepository.save(findEntity);
         }
+    }
+
+    // 로켓 전송 시 보관함에 저장되는 배치설정
+    public Long generateNextChestLocation() {
+        Long maxLocation = chestRepository.findMaxChestLocation();
+        return (maxLocation == null) ? 1L : maxLocation + 1L;
     }
 }

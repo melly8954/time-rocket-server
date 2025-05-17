@@ -17,7 +17,7 @@ public class PublicChestDto {
     private String senderEmail;
     private String receiverNickname;
     private String content;
-    private String location;
+    private String displayLocation;
     
     // entity 값을 dto 에 설정
     public PublicChestDto(ChestEntity chestEntity) {
@@ -29,6 +29,6 @@ public class PublicChestDto {
         this.senderEmail = chestEntity.getRocket().getSenderUser().getEmail();
         this.receiverNickname = chestEntity.getRocket().getReceiverUser().getNickname();
         this.content = chestEntity.getRocket().getContent();
-        this.location = chestEntity.getChestLocation();
+        this.displayLocation = chestEntity.getDisplayLocation();
     }
 }
