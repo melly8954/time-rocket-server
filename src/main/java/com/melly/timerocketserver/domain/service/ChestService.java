@@ -8,7 +8,6 @@ import com.melly.timerocketserver.global.exception.ChestNotFoundException;
 import com.melly.timerocketserver.global.exception.RocketNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -206,8 +205,8 @@ public class ChestService {
         }
         this.chestRepository.save(chest);
 
-        // 공개 보관함 캐시 갱신
-        this.displayService.updatePublicChestCache(chest.getRocket().getReceiverUser().getUserId());
+        // 진열장 캐시 갱신
+        this.displayService.updateDisplayCache(chest.getRocket().getReceiverUser().getUserId());
 
     }
     

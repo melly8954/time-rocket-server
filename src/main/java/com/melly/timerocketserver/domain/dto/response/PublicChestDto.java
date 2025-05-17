@@ -10,6 +10,7 @@ import lombok.*;
 @Builder
 public class PublicChestDto {
     private Long chestId;
+    private Long rocketId;
     private String rocketName;
     private String designUrl;
     private String senderEmail;
@@ -20,6 +21,7 @@ public class PublicChestDto {
     // entity 값을 dto 에 설정
     public PublicChestDto(ChestEntity chestEntity) {
         this.chestId = chestEntity.getChestId();
+        this.rocketId = chestEntity.getRocket().getRocketId();
         this.rocketName = chestEntity.getRocket().getRocketName();
         this.designUrl = chestEntity.getRocket().getDesign();
         this.senderEmail = chestEntity.getRocket().getSenderUser().getEmail();
