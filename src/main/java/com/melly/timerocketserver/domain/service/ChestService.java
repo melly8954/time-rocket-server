@@ -9,6 +9,7 @@ import com.melly.timerocketserver.global.exception.RocketNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -188,6 +189,7 @@ public class ChestService {
         }
     }
 
+    @Transactional
     // 보관함 공개 여부 변경 메서드
     public void toggleVisibility(Long chestId){
         ChestEntity chest = this.chestRepository.findByChestIdAndIsDeletedFalse(chestId)
@@ -272,6 +274,7 @@ public class ChestService {
         }
     }
 
+    @Transactional
     // 삭제된 로켓 복구 메서드
     public void restoreDeletedChest(Long chestId) {
         ChestEntity findEntity = this.chestRepository.findByChestIdAndIsDeletedTrue(chestId)
