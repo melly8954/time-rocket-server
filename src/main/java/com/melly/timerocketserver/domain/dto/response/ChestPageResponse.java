@@ -43,6 +43,6 @@ public class ChestPageResponse {
         @JsonProperty("isPublic")  // JSON 직렬화 시 'isPublic'으로 나오게 강제
         private boolean isPublic;
         private LocalDateTime publicAt;
-        private String location;
+        private String chestLocation;
     }
 }

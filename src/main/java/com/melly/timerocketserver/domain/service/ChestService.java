@@ -71,7 +71,7 @@ public class ChestService {
                         .lockExpiredAt(chest.getRocket().getLockExpiredAt())
                         .isPublic(chest.getIsPublic())
                         .publicAt(chest.getPublicAt())
-                        .location(chest.getChestLocation())
+                        .chestLocation(chest.getChestLocation())
                         .build())
                 .collect(Collectors.toList());  // 스트림에 담긴 요소들을 하나의 리스트로 모으는 역할
 
