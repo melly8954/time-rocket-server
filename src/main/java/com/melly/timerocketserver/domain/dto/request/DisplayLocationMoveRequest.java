@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ChestLocationMoveRequest {
+public class DisplayLocationMoveRequest {
     @NotNull
     private Long sourceChestId; // 이동할 로켓이 담긴 보관함 ID
     @NotNull

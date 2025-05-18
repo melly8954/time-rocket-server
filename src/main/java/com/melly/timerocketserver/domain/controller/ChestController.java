@@ -1,5 +1,6 @@
 package com.melly.timerocketserver.domain.controller;
 
+import com.melly.timerocketserver.domain.dto.request.DisplayLocationMoveRequest;
 import com.melly.timerocketserver.domain.dto.response.ChestDetailResponse;
 import com.melly.timerocketserver.domain.dto.response.ChestPageResponse;
 import com.melly.timerocketserver.domain.service.ChestService;
@@ -74,4 +75,6 @@ public class ChestController implements ResponseController {
         this.chestService.restoreDeletedChest(chestId);
         return makeResponseEntity(HttpStatus.OK,"삭제된 로켓의 복구를 성공했습니다.",null);
     }
+
+
 }
