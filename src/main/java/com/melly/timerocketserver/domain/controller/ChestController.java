@@ -27,8 +27,8 @@ public class ChestController implements ResponseController {
     // 회원별 보관함 로켓 조회
     @GetMapping("/users/{userId}")
     public ResponseEntity<ResponseDto> getChestList(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
-                                                    @RequestParam(defaultValue = "received") String type,
-                                                    @RequestParam(required = false) String receiverType,
+                                                    @RequestParam(required = false, defaultValue = "received") String type,
+                                                    @RequestParam(required = false, defaultValue = "self") String receiverType,
                                                     @RequestParam(required = false, defaultValue = "") String rocketName,
                                                     @RequestParam(defaultValue = "1") int page,
                                                     @RequestParam(defaultValue = "10") int size,
@@ -66,7 +66,7 @@ public class ChestController implements ResponseController {
     @PatchMapping("/{chestId}/deleted-flag")
     public ResponseEntity<ResponseDto> softDeleteChest(@PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
         this.chestService.softDeleteChest(chestId);
-        return makeResponseEntity(HttpStatus.OK, "로켓이 삭제되었습니다.", null);
+        return makeResponseEntity(HttpStatus.OK, "해당 로켓이 삭제되었습니다.", null);
     }
 
     // 보관함 로켓 복구
