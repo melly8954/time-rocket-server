@@ -1,10 +1,13 @@
 package com.melly.timerocketserver.domain.service;
 
+import com.melly.timerocketserver.domain.dto.response.ChestDetailResponse;
+import com.melly.timerocketserver.domain.dto.response.DisplayDetailResponse;
 import com.melly.timerocketserver.domain.dto.response.PublicChestDto;
 import com.melly.timerocketserver.domain.entity.ChestEntity;
 import com.melly.timerocketserver.domain.repository.ChestRepository;
 import com.melly.timerocketserver.global.exception.ChestNotFoundException;
 import com.melly.timerocketserver.global.exception.DisplayNotFoundException;
+import com.melly.timerocketserver.global.exception.RocketNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -76,6 +79,31 @@ public class DisplayService {
         log.info("Redis 캐시를 갱신했습니다.");
     }
 
+    public DisplayDetailResponse getDisplayDetail(Long userId, Long chestId) {
+        ChestEntity findEntity = this.chestRepository.findByChestIdAndIsDeletedFalseAndIsPublicTrue(chestId)
+                .orElseThrow(()-> new ChestNotFoundException("해당 chestId의 진열장이 존재하지 않습니다."));
+
+        // 진열장의 로켓 존재 검사
+        if(findEntity.getRocket() == null) {
+            throw new RocketNotFoundException("진열장에 해당 로켓이 존재하지 않습니다.");
+        }
+
+        // 수신자가 맞는지 확인
+        if (!findEntity.getRocket().getReceiverUser().getUserId().equals(userId)) {
+            throw new ChestNotFoundException("본인의 진열장만 조회할 수 있습니다.");
+        }
+
+        return DisplayDetailResponse.builder()
+                .rocketId(findEntity.getRocket().getRocketId())
+                .rocketName(findEntity.getRocket().getRocketName())
+                .designUrl(findEntity.getRocket().getDesign())
+                .senderEmail(findEntity.getRocket().getSenderUser().getEmail())
+                .sentAt(findEntity.getRocket().getSentAt())
+                .content(findEntity.getRocket().getContent())
+                .isLocked(findEntity.getRocket().getIsLock())
+                .build();
+    }
+
     @Transactional
     public void moveLocation(Long sourceChestId, Long targetChestId) {
         ChestEntity source = chestRepository.findByChestIdAndIsDeletedFalseAndIsPublicTrue(sourceChestId)
@@ -99,4 +127,6 @@ public class DisplayService {
         Long userId = source.getRocket().getReceiverUser().getUserId(); // 두 진열장은 같은 회원의 것
         this.updateDisplayCache(userId);
     }
+
+
 }
