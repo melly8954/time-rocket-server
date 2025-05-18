@@ -159,8 +159,8 @@ public class ChestService {
     @Transactional
     // 보관함 공개 여부 변경 메서드
     public void toggleVisibility(Long chestId){
-        ChestEntity chest = this.chestRepository.findByChestIdAndIsDeletedFalse(chestId)
-                .orElseThrow(() -> new ChestNotFoundException("해당 chestId의 보관함이 존재하지 않거나 삭제된 상태입니다."));
+        ChestEntity chest = this.chestRepository.findByChestIdAndIsDeletedFalseAndRocket_IsLockFalse(chestId)
+                .orElseThrow(() -> new ChestNotFoundException("해당 chestId의 보관함이 존재하지 않거나, 삭제되었거나, 로켓이 잠금 상태입니다."));
 
         if (chest.getRocket() == null) {
             throw new RocketNotFoundException("보관함에 해당 로켓이 존재하지 않습니다.");
