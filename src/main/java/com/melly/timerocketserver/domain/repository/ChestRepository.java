@@ -30,44 +30,19 @@ public interface ChestRepository extends JpaRepository<ChestEntity, Long> {
     // 삭제되지 않은 보관함 조회
     Optional<ChestEntity> findByChestIdAndIsDeletedFalse(Long chestId);
 
-    // 보관함 배치 이동 업데이트
-    @Modifying // 호출 시 즉시 flush 를 하고 바로 DB에 update 쿼리 반영
-    @Query("UPDATE ChestEntity c SET c.chestLocation = :location WHERE c.chestId = :chestId")
-    void updateChestLocation(@Param("chestId") Long chestId, @Param("location") Long location);
-
-//
-//    // 로켓의 위치(chestLocation)를 가져오는데, 로켓이 특정 사용자에게 속하고, 특정 조건을 만족하는 위치만을 반환
-//    @Query("SELECT c.chestLocation " +
-//            "FROM ChestEntity c " +
-//            "WHERE c.rocket.receiverUser.userId = :userId " +
-//            "AND c.chestLocation LIKE :locationPrefix " +
-//            "AND c.rocket.receiverType = :receiverType " +
-//            "AND c.isDeleted = false")
-//    List<String> findChestLocationsByReceiver(@Param("userId") Long userId,
-//                                         @Param("locationPrefix") String locationPrefix,
-//                                         @Param("receiverType") String receiverType);
-//
-//    // 특정 회원의 location 에만 중복이 없어야 하므로, 사용자 ID를 기준으로 location 을 찾음
-//    Optional<ChestEntity> findByChestLocationAndRocket_ReceiverUser_UserIdAndIsDeletedFalse(String chestLocation, Long userId);
-//
-//    // 삭제된 로켓 복구
-//    Optional<ChestEntity> findByChestIdAndIsDeletedTrue(Long chestId);
+    // 삭제된 로켓 복구
+    Optional<ChestEntity> findByChestIdAndIsDeletedTrue(Long chestId);
 
     // 보관함에서 is_public = true 와 수신자 userId 조건으로 진열장 조회
     List<ChestEntity> findByIsPublicTrueAndRocket_ReceiverUser_UserId(Long receiverUserId);
 
     // 진열장 배치
-    @Query("SELECT c.displayLocation " +
-            "FROM ChestEntity c " +
+    @Query("SELECT c.displayLocation FROM ChestEntity c " +
             "WHERE c.rocket.receiverUser.userId = :userId " +
-            "AND c.rocket.receiverType = :receiverType " +
-            "AND c.displayLocation LIKE :locationPrefix " +
-            "AND c.isPublic = true")
-    List<String> findDisplayLocationsByReceiver(@Param("userId") Long userId,
-                                                @Param("locationPrefix") String locationPrefix,
-                                                @Param("receiverType") String receiverType);
+            "AND c.displayLocation LIKE :prefix " +
+            "AND c.isDeleted = false")
+    List<String> findDisplayLocationsByUserId(@Param("userId") Long userId, @Param("prefix") String prefix);
 
-    // 보관함 배치 값 조회
-    @Query("SELECT MAX(c.chestLocation) FROM ChestEntity c WHERE c.isDeleted = false")
-    Long findMaxChestLocation();
+    // 보관함 isPublic 갯수 조회
+    int countByRocket_ReceiverUser_UserIdAndIsPublicTrueAndIsDeletedFalse(Long userId);
 }

@@ -28,9 +28,6 @@ public class ChestEntity {
     @Column(name = "public_at")
     private LocalDateTime publicAt;
 
-    @Column(name = "chest_location")
-    private Long chestLocation;
-
     @Column(name = "display_location")
     private String displayLocation;
 

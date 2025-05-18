@@ -49,7 +49,7 @@ public class DisplayService {
         return displayList;
     }
 
-    // 진열장 캐시  ㅊㅍ 갱신용 메서드
+    // 진열장 캐시 갱신용 메서드
     public void updateDisplayCache(Long userId) {
         List<ChestEntity> chestEntities = this.chestRepository.findByIsPublicTrueAndRocket_ReceiverUser_UserId(userId);
 
