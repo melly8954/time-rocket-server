@@ -30,7 +30,7 @@ public class ChestService {
     public ChestPageResponse getChestList(Long userId, String rocketName, Pageable pageable, String type, String receiverType) {
         Page<ChestEntity> findEntity;
         if (type.equals("received")) {
-            // receiverType이 없거나 잘못된 값인 경우 예외 처리
+            // receiverType 이 없거나 잘못된 값인 경우 예외 처리
             if (receiverType == null || receiverType.isBlank()) {
                 throw new IllegalArgumentException("receiverType 은 'received' 타입일 때 필수입니다.");
             }
@@ -120,7 +120,7 @@ public class ChestService {
     // 보관함 상세조회 메서드
     public ChestDetailResponse getChestDetail(Long userId, Long chestId) {
         ChestEntity findEntity = this.chestRepository.findByChestIdAndIsDeletedFalse(chestId)
-                .orElseThrow(()-> new ChestNotFoundException("보관함에 저장된 로켓이 존재하지 않습니다."));
+                .orElseThrow(()-> new ChestNotFoundException("해당 chestId의 보관함이 존재하지 않습니다."));
 
         // 보관함의 로켓 존재 검사
         if(findEntity.getRocket() == null) {
@@ -160,7 +160,7 @@ public class ChestService {
     // 보관함 공개 여부 변경 메서드
     public void toggleVisibility(Long chestId){
         ChestEntity chest = this.chestRepository.findByChestIdAndIsDeletedFalse(chestId)
-                .orElseThrow(() -> new ChestNotFoundException("해당 ID의 보관함이 존재하지 않거나 삭제된 상태입니다."));
+                .orElseThrow(() -> new ChestNotFoundException("해당 chestId의 보관함이 존재하지 않거나 삭제된 상태입니다."));
 
         if (chest.getRocket() == null) {
             throw new RocketNotFoundException("보관함에 해당 로켓이 존재하지 않습니다.");
@@ -209,7 +209,7 @@ public class ChestService {
     @Transactional
     public void softDeleteChest(Long chestId) {
         ChestEntity findEntity = this.chestRepository.findByChestIdAndIsDeletedFalse(chestId)
-                .orElseThrow(() -> new ChestNotFoundException("해당 ID의 보관함이 존재하지 않거나 삭제된 상태입니다."));
+                .orElseThrow(() -> new ChestNotFoundException("해당 chestId의 보관함이 존재하지 않거나 삭제된 상태입니다."));
 
         if(findEntity.getRocket() == null){
             throw new RocketNotFoundException("보관함에 해당 로켓이 존재하지 않습니다.");

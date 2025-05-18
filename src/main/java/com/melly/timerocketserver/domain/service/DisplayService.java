@@ -4,6 +4,7 @@ import com.melly.timerocketserver.domain.dto.response.PublicChestDto;
 import com.melly.timerocketserver.domain.entity.ChestEntity;
 import com.melly.timerocketserver.domain.repository.ChestRepository;
 import com.melly.timerocketserver.global.exception.ChestNotFoundException;
+import com.melly.timerocketserver.global.exception.DisplayNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,11 @@ public class DisplayService {
 
         // 2. DB에서 공개 보관함 조회 (receiverUser 기준)
         List<ChestEntity> chestEntities = this.chestRepository.findByIsDeletedFalseAndIsPublicTrueAndRocket_ReceiverUser_UserId(userId);
+
+        // 비어 있으면 404 에러 발생
+        if (chestEntities == null || chestEntities.isEmpty()) {
+            throw new DisplayNotFoundException("해당 회원의 진열장이 존재하지 않습니다.");
+        }
 
         // Entity → DTO 변환
         List<PublicChestDto> displayList = chestEntities.stream()
