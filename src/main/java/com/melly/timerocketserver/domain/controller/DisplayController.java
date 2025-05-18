@@ -33,7 +33,7 @@ public class DisplayController implements ResponseController {
     public ResponseEntity<ResponseDto> getDisplayDetail(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
                                                         @PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
         DisplayDetailResponse displayDetail = this.displayService.getDisplayDetail(userId, chestId);
-        return makeResponseEntity(HttpStatus.OK, "보관함의 로켓 상세 정보를 불러왔습니다.", displayDetail);
+        return makeResponseEntity(HttpStatus.OK, "진열장의 로켓 상세 정보를 불러왔습니다.", displayDetail);
     }
 
     // 진열장 로켓 배치 이동
