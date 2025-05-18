@@ -3,9 +3,11 @@ package com.melly.timerocketserver.domain.service;
 import com.melly.timerocketserver.domain.dto.response.PublicChestDto;
 import com.melly.timerocketserver.domain.entity.ChestEntity;
 import com.melly.timerocketserver.domain.repository.ChestRepository;
+import com.melly.timerocketserver.global.exception.ChestNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +38,7 @@ public class DisplayService {
         }
 
         // 2. DB에서 공개 보관함 조회 (receiverUser 기준)
-        List<ChestEntity> chestEntities = this.chestRepository.findByIsPublicTrueAndRocket_ReceiverUser_UserId(userId);
+        List<ChestEntity> chestEntities = this.chestRepository.findByIsDeletedFalseAndIsPublicTrueAndRocket_ReceiverUser_UserId(userId);
 
         // Entity → DTO 변환
         List<PublicChestDto> displayList = chestEntities.stream()
@@ -49,9 +51,9 @@ public class DisplayService {
         return displayList;
     }
 
-    // 진열장 캐시  ㅊㅍ 갱신용 메서드
+    // 진열장 캐시 갱신용 메서드
     public void updateDisplayCache(Long userId) {
-        List<ChestEntity> chestEntities = this.chestRepository.findByIsPublicTrueAndRocket_ReceiverUser_UserId(userId);
+        List<ChestEntity> chestEntities = this.chestRepository.findByIsDeletedFalseAndIsPublicTrueAndRocket_ReceiverUser_UserId(userId);
 
         List<PublicChestDto> displayList = chestEntities.stream()
                 .map(PublicChestDto::new)
@@ -66,5 +68,29 @@ public class DisplayService {
                 TimeUnit.MINUTES
         );
         log.info("Redis 캐시를 갱신했습니다.");
+    }
+
+    @Transactional
+    public void moveLocation(Long sourceChestId, Long targetChestId) {
+        ChestEntity source = chestRepository.findByChestIdAndIsDeletedFalseAndIsPublicTrue(sourceChestId)
+                .orElseThrow(() -> new ChestNotFoundException("이동할 로켓이 진열장에 존재하지 않거나 삭제 상태입니다."));
+
+        ChestEntity target = chestRepository.findByChestIdAndIsDeletedFalseAndIsPublicTrue(targetChestId)
+                .orElseThrow(() -> new ChestNotFoundException("이동시킬 위치의 로켓이 진열장에 존재하지 않거나 삭제 상태입니다."));
+
+        // displayLocation 값 교환 또는 이동
+        Long sourceLoc = source.getDisplayLocation();
+        Long targetLoc = target.getDisplayLocation();
+
+        // 위치 스왑
+        source.setDisplayLocation(targetLoc);
+        target.setDisplayLocation(sourceLoc);
+
+        chestRepository.save(source);
+        chestRepository.save(target);
+
+        // 진열장 캐시 갱신
+        Long userId = source.getRocket().getReceiverUser().getUserId(); // 두 진열장은 같은 회원의 것
+        this.updateDisplayCache(userId);
     }
 }

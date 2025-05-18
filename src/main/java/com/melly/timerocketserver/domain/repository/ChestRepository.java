@@ -15,59 +15,35 @@ import java.util.Optional;
 
 @Repository
 public interface ChestRepository extends JpaRepository<ChestEntity, Long> {
-    // 받은 로켓 + receiverType
+    // 받은 로켓이 담긴 삭제되지 않은 보관함 목록 조회 (페이징 지원)
     Page<ChestEntity> findByIsDeletedFalseAndRocket_ReceiverUser_UserIdAndRocket_ReceiverType(Long userId, String receiverType, Pageable pageable);
     Page<ChestEntity> findByIsDeletedFalseAndRocket_ReceiverUser_UserIdAndRocket_ReceiverTypeAndRocket_RocketNameContaining(Long userId, String receiverType, String rocketName, Pageable pageable);
-    // 받은 로켓의 개수 (isDeleted = false)
+    // 받은 로켓이 담긴 삭제되지 않은 보관함 개수 조회 (수신자 기준)
     Long countByIsDeletedFalseAndRocket_ReceiverUser_UserId(Long userId);
 
-    // 보낸 로켓 (sender 기준)
+    // 보낸 로켓이 담긴 삭제되지 않은 보관함 목록 조회 (페이징 지원)
     Page<ChestEntity> findByIsDeletedFalseAndRocket_SenderUser_UserId(Long userId, Pageable pageable);
     Page<ChestEntity> findByIsDeletedFalseAndRocket_SenderUser_UserIdAndRocket_RocketNameContaining(Long userId, String rocketName, Pageable pageable);
-    // 보낸 로켓의 개수 (isDeleted = false)
+    //  보낸 로켓이 담긴 삭제되지 않은 보관함 개수 조회 (송신자 기준)
     Long countByIsDeletedFalseAndRocket_SenderUser_UserId(Long userId);
 
-    // 삭제되지 않은 보관함 조회
+    // 보관함 조회 - 삭제되지 않은 보관함을 chestId로 조회
     Optional<ChestEntity> findByChestIdAndIsDeletedFalse(Long chestId);
 
-    // 보관함 배치 이동 업데이트
-    @Modifying // 호출 시 즉시 flush 를 하고 바로 DB에 update 쿼리 반영
-    @Query("UPDATE ChestEntity c SET c.chestLocation = :location WHERE c.chestId = :chestId")
-    void updateChestLocation(@Param("chestId") Long chestId, @Param("location") Long location);
+    // 삭제된 보관함 조회 - 복구 등을 위한 용도
+    Optional<ChestEntity> findByChestIdAndIsDeletedTrue(Long chestId);
 
-//
-//    // 로켓의 위치(chestLocation)를 가져오는데, 로켓이 특정 사용자에게 속하고, 특정 조건을 만족하는 위치만을 반환
-//    @Query("SELECT c.chestLocation " +
-//            "FROM ChestEntity c " +
-//            "WHERE c.rocket.receiverUser.userId = :userId " +
-//            "AND c.chestLocation LIKE :locationPrefix " +
-//            "AND c.rocket.receiverType = :receiverType " +
-//            "AND c.isDeleted = false")
-//    List<String> findChestLocationsByReceiver(@Param("userId") Long userId,
-//                                         @Param("locationPrefix") String locationPrefix,
-//                                         @Param("receiverType") String receiverType);
-//
-//    // 특정 회원의 location 에만 중복이 없어야 하므로, 사용자 ID를 기준으로 location 을 찾음
-//    Optional<ChestEntity> findByChestLocationAndRocket_ReceiverUser_UserIdAndIsDeletedFalse(String chestLocation, Long userId);
-//
-//    // 삭제된 로켓 복구
-//    Optional<ChestEntity> findByChestIdAndIsDeletedTrue(Long chestId);
+    // 진열 중인 보관함 목록 조회 - 수신자 ID 기준으로 isPublic=true, isDeleted=true 상태인 보관함만 반환
+    List<ChestEntity> findByIsDeletedFalseAndIsPublicTrueAndRocket_ReceiverUser_UserId(Long receiverUserId);
 
-    // 보관함에서 is_public = true 와 수신자 userId 조건으로 진열장 조회
-    List<ChestEntity> findByIsPublicTrueAndRocket_ReceiverUser_UserId(Long receiverUserId);
+    // 공개 중인 보관함 수 조회 - 수신자 ID 기준으로 공개 상태이며 삭제되지 않은 보관함 개수 반환
+    int countByRocket_ReceiverUser_UserIdAndIsPublicTrueAndIsDeletedFalse(Long userId);
 
-    // 진열장 배치
-    @Query("SELECT c.displayLocation " +
-            "FROM ChestEntity c " +
-            "WHERE c.rocket.receiverUser.userId = :userId " +
-            "AND c.rocket.receiverType = :receiverType " +
-            "AND c.displayLocation LIKE :locationPrefix " +
-            "AND c.isPublic = true")
-    List<String> findDisplayLocationsByReceiver(@Param("userId") Long userId,
-                                                @Param("locationPrefix") String locationPrefix,
-                                                @Param("receiverType") String receiverType);
+    // displayLocation 의 최대값 조회 - 수신자 ID 기준, 삭제되지 않은 보관함 대상
+    @Query("SELECT MAX(c.displayLocation) FROM ChestEntity c WHERE c.rocket.receiverUser.userId = :userId AND c.isDeleted = false")
+    Long findMaxDisplayLocationByUserId(@Param("userId") Long userId);
 
-    // 보관함 배치 값 조회
-    @Query("SELECT MAX(c.chestLocation) FROM ChestEntity c WHERE c.isDeleted = false")
-    Long findMaxChestLocation();
+    // 진열 중인 보관함 조회 - chestId 기준, 삭제되지 않고 공개 상태인 보관함 조회
+    Optional<ChestEntity> findByChestIdAndIsDeletedFalseAndIsPublicTrue(Long chestId);
+
 }

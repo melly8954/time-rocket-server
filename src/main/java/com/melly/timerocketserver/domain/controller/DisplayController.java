@@ -1,5 +1,6 @@
 package com.melly.timerocketserver.domain.controller;
 
+import com.melly.timerocketserver.domain.dto.request.DisplayLocationMoveRequest;
 import com.melly.timerocketserver.domain.dto.response.PublicChestDto;
 import com.melly.timerocketserver.domain.service.DisplayService;
 import com.melly.timerocketserver.global.common.ResponseController;
@@ -23,5 +24,12 @@ public class DisplayController implements ResponseController {
     public ResponseEntity<ResponseDto> getDisplayList(@PathVariable Long userId) {
         List<PublicChestDto> displayList = displayService.getDisplayList(userId);
         return makeResponseEntity(HttpStatus.OK, "진열장 조회 성공", displayList);
+    }
+
+    // 진열장 로켓 배치 이동
+    @PatchMapping("/location")
+    public ResponseEntity<ResponseDto> moveLocation(@RequestBody DisplayLocationMoveRequest request) {
+        this.displayService.moveLocation(request.getSourceChestId(), request.getTargetChestId());
+        return makeResponseEntity(HttpStatus.OK, "진열장의 로켓 배치이동이 완료되었습니다.", null);
     }
 }

@@ -28,11 +28,8 @@ public class ChestEntity {
     @Column(name = "public_at")
     private LocalDateTime publicAt;
 
-    @Column(name = "chest_location")
-    private Long chestLocation;
-
     @Column(name = "display_location")
-    private String displayLocation;
+    private Long displayLocation;
 
     @Column(name = "is_deleted")
     private Boolean isDeleted;  // tinyint(1) -> Boolean 처리

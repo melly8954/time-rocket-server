@@ -17,7 +17,7 @@ public class PublicChestDto {
     private String senderEmail;
     private String receiverNickname;
     private String content;
-    private String displayLocation;
+    private Long displayLocation;
     
     // entity 값을 dto 에 설정
     public PublicChestDto(ChestEntity chestEntity) {
