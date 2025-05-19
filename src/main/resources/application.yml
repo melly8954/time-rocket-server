@@ -83,3 +83,7 @@ decorator:
   datasource:
     p6spy:
       enable-logging: true
+
+file:
+  access-url-base: http://localhost:8081/images/
+  rocket-file: C:/time_rocket/images/rocket_file

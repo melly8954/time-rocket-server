@@ -7,9 +7,14 @@ import com.melly.timerocketserver.global.common.ResponseController;
 import com.melly.timerocketserver.global.common.ResponseDto;
 import jakarta.validation.constraints.Min;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.List;
 
 @Validated
 @RestController
@@ -22,10 +27,11 @@ public class RocketController implements ResponseController {
     }
 
     // 로켓 전송
-    @PostMapping("/users/{userId}")
+    @PostMapping(value = "/users/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ResponseDto> sendRocket(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
-                                                  @RequestBody @Validated RocketRequestDto rocketRequestDto) {
-        this.rocketService.sendRocket(userId, rocketRequestDto);
+                                                  @RequestPart("data") @Validated RocketRequestDto rocketRequestDto,
+                                                  @RequestPart(value = "files", required = false) List<MultipartFile> files) throws IOException {
+        this.rocketService.sendRocket(userId, rocketRequestDto, files);
         return makeResponseEntity(HttpStatus.CREATED, "로켓이 전송 되었습니다.", null);
     }   
     
