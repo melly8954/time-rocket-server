@@ -80,7 +80,7 @@ public class JwtFilter extends OncePerRequestFilter {
         // username 값 획득
         String username = jwtUtil.getUsername(accessToken);
 
-        UserEntity user = this.userRepository.findByEmailOrNickname(username,username)
+        UserEntity user = userRepository.findByEmailOrNickname(username,username)
                 .orElseThrow(() -> new UserNotFoundException("해당 회원은 존재하지 않습니다."));
 
         CustomUserDetails customUserDetails = new CustomUserDetails(user);

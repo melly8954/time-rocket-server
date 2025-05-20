@@ -53,7 +53,7 @@ public class CustomOAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHan
                 .username(username)
                 .refreshToken(refresh)
                 .tokenExpiration(date.toString()).build();
-        this.refreshRepository.save(refreshEntity);
+        refreshRepository.save(refreshEntity);
 
         // 쿠키 생성
         Cookie accessTokenCookie = new Cookie("accessToken", access);

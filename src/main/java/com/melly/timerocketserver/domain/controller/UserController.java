@@ -34,20 +34,20 @@ public class UserController implements ResponseController {
     // @Validated 로 DTO 필드 검사
     @PostMapping("/users")
     public ResponseEntity<ResponseDto> signUp(@RequestBody @Validated SignUpRequestDto signUpRequestDto) {
-        this.userService.signUp(signUpRequestDto);  // 예외가 터지면 GlobalExceptionHandler 가 받음
+        userService.signUp(signUpRequestDto);  // 예외가 터지면 GlobalExceptionHandler 가 받음
         return makeResponseEntity(HttpStatus.CREATED, "회원가입 성공", null);
     }
 
     @GetMapping("/users/duplicate-nickname/{nickname}")
     public ResponseEntity<ResponseDto> duplicateNickname(@PathVariable @Pattern(regexp = "^[a-zA-Z0-9]{2,}$", message = "닉네임은 영어 또는 숫자로 구성된 2자 이상이어야 합니다.")
                                                          String nickname) {
-        this.userService.duplicateNickname(nickname);
+        userService.duplicateNickname(nickname);
         return makeResponseEntity(HttpStatus.OK, "중복 체크 완료", null);
     }
 
     @PostMapping("/tokens/refresh")
     public ResponseEntity<ResponseDto> refreshToken(HttpServletRequest request, HttpServletResponse response) {
-        this.refreshService.reissueToken(request,response);
+        refreshService.reissueToken(request,response);
         return makeResponseEntity(HttpStatus.CREATED, "refresh_token 재발급", null);
     }
 
@@ -71,7 +71,7 @@ public class UserController implements ResponseController {
     @PatchMapping("/users/{userId}/password")
     public ResponseEntity<ResponseDto> updatePassword(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
                                                       @RequestBody @Validated PasswordRequestDto passwordRequestDto){
-        this.userService.updatePassword(userId, passwordRequestDto);
+        userService.updatePassword(userId, passwordRequestDto);
         return makeResponseEntity(HttpStatus.OK, "비밀번호 변경 완료", null);
     }
 
@@ -80,7 +80,7 @@ public class UserController implements ResponseController {
     public ResponseEntity<ResponseDto> updateStatus(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
                                                     @RequestBody UpdateStatusRequestDto updateStatusRequestDto){
         // 회원 탈퇴 (status = DELETED) 요청
-        this.userService.updateStatus(userId, updateStatusRequestDto);
+        userService.updateStatus(userId, updateStatusRequestDto);
         return makeResponseEntity(HttpStatus.OK, "회원 상태가 변경되었습니다.", null);
     }
 }

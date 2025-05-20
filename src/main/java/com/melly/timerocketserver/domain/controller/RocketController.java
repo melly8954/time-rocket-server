@@ -31,7 +31,7 @@ public class RocketController implements ResponseController {
     public ResponseEntity<ResponseDto> sendRocket(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
                                                   @RequestPart("data") @Validated RocketRequestDto rocketRequestDto,
                                                   @RequestPart(value = "files", required = false) List<MultipartFile> files) throws IOException {
-        this.rocketService.sendRocket(userId, rocketRequestDto, files);
+        rocketService.sendRocket(userId, rocketRequestDto, files);
         return makeResponseEntity(HttpStatus.CREATED, "로켓이 전송 되었습니다.", null);
     }   
     
@@ -39,21 +39,21 @@ public class RocketController implements ResponseController {
     @PostMapping("/users/{userId}/temp")
     public ResponseEntity<ResponseDto> saveTempRocket(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
                                                   @RequestBody RocketRequestDto rocketRequestDto) {
-        this.rocketService.saveTempRocket(userId, rocketRequestDto);
+        rocketService.saveTempRocket(userId, rocketRequestDto);
         return makeResponseEntity(HttpStatus.OK, "로켓이 임시저장 되었습니다.", null);
     }
     
     // 로켓 임시저장 불러오기
     @GetMapping("/users/{userId}/temp")
     public ResponseEntity<ResponseDto> getTempRocket(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId) {
-        RocketResponse tempRocket = this.rocketService.getTempRocket(userId);
+        RocketResponse tempRocket = rocketService.getTempRocket(userId);
         return makeResponseEntity(HttpStatus.OK, "임시저장 로켓을 불러왔습니다.", tempRocket);
     }
 
     // 로켓 잠금 해제
     @PatchMapping("/{rocketId}/unlocked-rocket")
     public ResponseEntity<ResponseDto> unlockRocket(@PathVariable @Min(value = 1, message = "rocketId는 1 이상이어야 합니다.") Long rocketId){
-        this.rocketService.unlockRocket(rocketId);
+        rocketService.unlockRocket(rocketId);
         return makeResponseEntity(HttpStatus.OK, "로켓의 잠금이 해제되었습니다.", null);
     }
 }

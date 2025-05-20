@@ -79,7 +79,7 @@ public class RocketService {
                     // saveRocketFile 에서 저장과 고유명 생성 모두 처리
                     String savedPath = fileService.saveRocketFile(file);
 
-                    // savedPath 끝에 있는 파일명만 추출
+                    // savedPath 의 가장 마지막 / 이후의 문자열을 추출
                     String uniqueName = savedPath.substring(savedPath.lastIndexOf("/") + 1);
 
                     RocketFileEntity rocketFile = RocketFileEntity.builder()
@@ -151,7 +151,7 @@ public class RocketService {
 
     // 로켓 임시저장 불러오기
     public RocketResponse getTempRocket(Long userId) {
-        Optional<RocketEntity> existingTemp = this.rocketRepository.findBySenderUser_UserIdAndIsTemp(userId, true);
+        Optional<RocketEntity> existingTemp = rocketRepository.findBySenderUser_UserIdAndIsTemp(userId, true);
         RocketEntity tempRocket = existingTemp
                 .orElseThrow(() -> new RocketNotFoundException("해당 회원은 임시 저장된 로켓이 존재하지 않습니다."));
 
@@ -170,7 +170,7 @@ public class RocketService {
     }
 
     public void unlockRocket(Long rocketId) {
-        RocketEntity findEntity = this.rocketRepository.findByRocketId(rocketId)
+        RocketEntity findEntity = rocketRepository.findByRocketId(rocketId)
                 .orElseThrow(()-> new RocketNotFoundException("해당 로켓이 존재하지 않습니다."));
 
         // 잠금 해제 가능 조건: lockExpiredAt가 현재 시각 이전 또는 같음
@@ -180,6 +180,6 @@ public class RocketService {
 
         // 잠금 해제 수행
         findEntity.setIsLock(false); // '잠금 해제' 상태로 명시적으로 설정
-        this.rocketRepository.save(findEntity);
+        rocketRepository.save(findEntity);
     }
 }

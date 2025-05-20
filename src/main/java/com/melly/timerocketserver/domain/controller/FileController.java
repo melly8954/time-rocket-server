@@ -23,16 +23,18 @@ public class FileController {
         this.fileService = fileService;
     }
 
-    @GetMapping("/download/{fileId}")
+    @GetMapping("/download/{fileId}")   // 파일 다운로드 API, HTTP 헤더와 바이너리 데이터 직접 반환, 즉 Json 응답이 아니라 공통응답 API 상속불가
     public ResponseEntity<Resource> downloadFile(@PathVariable Long fileId) throws IOException {
         // 서비스에서 리소스와 원본파일명 같이 받음
         FileDownloadDto fileDownloadDto = fileService.loadFileAsResource(fileId);
 
         return ResponseEntity.ok()
+                // 응답 본문을 '바이너리 데이터' 타입으로 설정 (파일 다운로드 용도)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                // 원본 파일명으로 다운로드 설정
+                // HTTP 헤더에 Content-Disposition 추가 — 브라우저가 첨부파일로 다운로드하도록 원본 파일명 지정
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename=\"" + fileDownloadDto.getOriginalName() + "\"")
+                // 실제 파일 데이터(Resource)를 응답 본문에 담아 반환
                 .body(fileDownloadDto.getResource());
     }
 }

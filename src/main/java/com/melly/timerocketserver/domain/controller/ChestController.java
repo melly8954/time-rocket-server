@@ -42,7 +42,7 @@ public class ChestController implements ResponseController {
         sortBy = order.equalsIgnoreCase("desc") ? sortBy.descending() : sortBy.ascending();
         Pageable pageable = PageRequest.of(page - 1, size, sortBy);
 
-        ChestPageResponse chestList = this.chestService.getChestList(userId, rocketName, pageable, type, receiverType);
+        ChestPageResponse chestList = chestService.getChestList(userId, rocketName, pageable, type, receiverType);
 
         return makeResponseEntity(HttpStatus.OK, "보관함에 저장된 로켓 목록을 불러왔습니다.", chestList);
     }
@@ -51,28 +51,28 @@ public class ChestController implements ResponseController {
     @GetMapping("/users/{userId}/details/{chestId}")
     public ResponseEntity<ResponseDto> getChestDetail(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
                                                       @PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
-        ChestDetailResponse chestDetail = this.chestService.getChestDetail(userId, chestId);
+        ChestDetailResponse chestDetail = chestService.getChestDetail(userId, chestId);
         return makeResponseEntity(HttpStatus.OK, "보관함의 로켓 상세 정보를 불러왔습니다.", chestDetail);
     }
 
     // 보관함 로켓 공개 여부 변경
     @PatchMapping("/{chestId}/visibility")
     public ResponseEntity<ResponseDto> toggleVisibility(@PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
-        this.chestService.toggleVisibility(chestId);
+        chestService.toggleVisibility(chestId);
         return makeResponseEntity(HttpStatus.OK, "로켓의 공개 여부가 변경되었습니다.", null);
     }
 
     // 보관함 로켓 논리 삭제
     @PatchMapping("/{chestId}/deleted-flag")
     public ResponseEntity<ResponseDto> softDeleteChest(@PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
-        this.chestService.softDeleteChest(chestId);
+        chestService.softDeleteChest(chestId);
         return makeResponseEntity(HttpStatus.OK, "해당 로켓이 삭제되었습니다.", null);
     }
 
     // 보관함 로켓 복구
     @PatchMapping("/{chestId}/restoration")
     public ResponseEntity<ResponseDto> restoreDeletedChest(@PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
-        this.chestService.restoreDeletedChest(chestId);
+        chestService.restoreDeletedChest(chestId);
         return makeResponseEntity(HttpStatus.OK,"삭제된 로켓의 복구를 성공했습니다.",null);
     }
 

@@ -11,5 +11,4 @@ import org.springframework.core.io.Resource;
 public class FileDownloadDto {
     private Resource resource;
     private String originalName;
-
 }
