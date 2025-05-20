@@ -76,8 +76,11 @@ public class RocketService {
             int order = 1;
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
-                    String uniqueName = fileService.generateUniqueFileName(file);
-                    String savedPath = fileService.saveRocketFile(file);  // 예: S3 저장 후 URL 반환
+                    // saveRocketFile 에서 저장과 고유명 생성 모두 처리
+                    String savedPath = fileService.saveRocketFile(file);
+
+                    // savedPath 끝에 있는 파일명만 추출
+                    String uniqueName = savedPath.substring(savedPath.lastIndexOf("/") + 1);
 
                     RocketFileEntity rocketFile = RocketFileEntity.builder()
                             .rocket(rocket)

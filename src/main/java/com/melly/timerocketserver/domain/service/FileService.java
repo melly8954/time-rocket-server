@@ -1,9 +1,15 @@
 package com.melly.timerocketserver.domain.service;
 
+import com.melly.timerocketserver.domain.dto.response.FileDownloadDto;
+import com.melly.timerocketserver.domain.entity.RocketFileEntity;
+import com.melly.timerocketserver.domain.repository.RocketFileRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,6 +18,11 @@ import java.util.UUID;
 
 @Service
 public class FileService {
+    private final RocketFileRepository rocketFileRepository;
+
+    public FileService(RocketFileRepository rocketFileRepository) {
+        this.rocketFileRepository = rocketFileRepository;
+    }
 
     @Value("${file.access-url-base}")
     private String baseUrl;
@@ -54,5 +65,20 @@ public class FileService {
 
         // 매핑된 경로 반환**
         return baseUrl + uniqueFileName;
+    }
+
+    // 첨부파일 다운로드 메서드
+    public FileDownloadDto  loadFileAsResource(Long fileId) throws IOException {
+        RocketFileEntity fileEntity = rocketFileRepository.findById(fileId)
+                .orElseThrow(() -> new FileNotFoundException("File not found with id " + fileId));
+
+        Path filePath = Paths.get(uploadDir1).resolve(fileEntity.getUniqueName()).normalize();
+        Resource resource = new UrlResource(filePath.toUri());
+
+        if (!resource.exists()) {
+            throw new FileNotFoundException("File not found: " + fileEntity.getUniqueName());
+        }
+
+        return new FileDownloadDto(resource, fileEntity.getOriginalName());
     }
 }
