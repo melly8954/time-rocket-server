@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.io.FileNotFoundException;
 
@@ -90,6 +92,12 @@ public class GlobalExceptionHandler implements ResponseController {
     public ResponseEntity<ResponseDto> handleUserNotFound(FileNotFoundException e) {
         log.error("404 Error : " + e.getMessage());
         return makeResponseEntity(HttpStatus.NOT_FOUND, e.getMessage(), null);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ResponseDto> handleMaxSizeException(MaxUploadSizeExceededException ex) {
+        log.error("413 Error : 파일 업로드 용량 초과 - {}", ex.getMessage());
+        return makeResponseEntity(HttpStatus.PAYLOAD_TOO_LARGE, "파일 크기 또는 전체 업로드 용량이 허용 범위를 초과했습니다. (단일 파일 10MB, 총합 20MB 제한)", null);
     }
 
     @ExceptionHandler(Exception.class)
