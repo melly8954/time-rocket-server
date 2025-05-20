@@ -5,6 +5,7 @@ server:
       charset: UTF-8
       enabled: true
       force: true
+
 spring:
   application:
     name: time-rocket-server
@@ -19,6 +20,10 @@ spring:
     charset: UTF-8
     suffix: .html
     check-template-location: true
+  servlet:
+    multipart:
+      max-file-size: 10MB     # 단일 파일 최대 업로드 크기
+      max-request-size: 20MB  # 전체 요청(여러 파일 합산) 최대 크기
   datasource:
     driver-class-name: com.p6spy.engine.spy.P6SpyDriver
     url: jdbc:p6spy:mysql://localhost:3306/time_rocket_db?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
@@ -80,6 +85,7 @@ spring:
     redis:
       host: localhost
       port: 6379
+
 decorator:
   datasource:
     p6spy:
