@@ -45,7 +45,7 @@ public class DisplayService {
         }
 
         // 2. DB에서 공개 보관함 조회 (receiverUser 기준)
-        List<ChestEntity> chestEntities = this.chestRepository.findByIsDeletedFalseAndIsPublicTrueAndRocket_ReceiverUser_UserId(userId);
+        List<ChestEntity> chestEntities = chestRepository.findByIsDeletedFalseAndIsPublicTrueAndRocket_ReceiverUser_UserId(userId);
 
         // 비어 있으면 404 에러 발생
         if (chestEntities == null || chestEntities.isEmpty()) {
@@ -65,7 +65,7 @@ public class DisplayService {
 
     // 진열장 캐시 갱신용 메서드
     public void updateDisplayCache(Long userId) {
-        List<ChestEntity> chestEntities = this.chestRepository.findByIsDeletedFalseAndIsPublicTrueAndRocket_ReceiverUser_UserId(userId);
+        List<ChestEntity> chestEntities = chestRepository.findByIsDeletedFalseAndIsPublicTrueAndRocket_ReceiverUser_UserId(userId);
 
         List<PublicChestDto> displayList = chestEntities.stream()
                 .map(PublicChestDto::new)
@@ -83,7 +83,7 @@ public class DisplayService {
     }
 
     public DisplayDetailResponse getDisplayDetail(Long userId, Long chestId) {
-        ChestEntity findEntity = this.chestRepository.findByChestIdAndIsDeletedFalseAndIsPublicTrue(chestId)
+        ChestEntity findEntity = chestRepository.findByChestIdAndIsDeletedFalseAndIsPublicTrue(chestId)
                 .orElseThrow(()-> new ChestNotFoundException("해당 chestId의 진열장이 존재하지 않습니다."));
 
         // 진열장의 로켓 존재 검사
@@ -148,7 +148,7 @@ public class DisplayService {
 
         // 진열장 캐시 갱신
         Long userId = source.getRocket().getReceiverUser().getUserId(); // 두 진열장은 같은 회원의 것
-        this.updateDisplayCache(userId);
+        updateDisplayCache(userId);
     }
 
 

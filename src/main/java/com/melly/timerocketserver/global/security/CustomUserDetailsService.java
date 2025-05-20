@@ -22,7 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UserNotFoundException {
         // 이메일과 닉네임을 이용해 사용자 검색
-        UserEntity userEntity = this.userService.findByEmailOrNickname(username);
+        UserEntity userEntity = userService.findByEmailOrNickname(username);
         if (userEntity == null) {
             throw new UsernameNotFoundException("해당 회원은 존재하지 않습니다.");
         }

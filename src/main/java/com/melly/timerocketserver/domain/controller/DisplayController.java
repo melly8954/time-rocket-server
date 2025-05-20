@@ -32,14 +32,14 @@ public class DisplayController implements ResponseController {
     @GetMapping("/users/{userId}/details/{chestId}")
     public ResponseEntity<ResponseDto> getDisplayDetail(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
                                                         @PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
-        DisplayDetailResponse displayDetail = this.displayService.getDisplayDetail(userId, chestId);
+        DisplayDetailResponse displayDetail = displayService.getDisplayDetail(userId, chestId);
         return makeResponseEntity(HttpStatus.OK, "진열장의 로켓 상세 정보를 불러왔습니다.", displayDetail);
     }
 
     // 진열장 로켓 배치 이동
     @PatchMapping("/location")
     public ResponseEntity<ResponseDto> moveLocation(@RequestBody DisplayLocationMoveRequest request) {
-        this.displayService.moveLocation(request.getSourceChestId(), request.getTargetChestId());
+        displayService.moveLocation(request.getSourceChestId(), request.getTargetChestId());
         return makeResponseEntity(HttpStatus.OK, "진열장의 로켓 배치이동이 완료되었습니다.", null);
     }
 }

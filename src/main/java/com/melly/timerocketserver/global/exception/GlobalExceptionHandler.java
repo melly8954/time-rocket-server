@@ -10,6 +10,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.io.FileNotFoundException;
+
 @Slf4j
 @ControllerAdvice   // 컨트롤러 실행 중 발생하는 예외를 잡음, 모든 요청에서 가로챔
 public class GlobalExceptionHandler implements ResponseController {
@@ -80,6 +82,12 @@ public class GlobalExceptionHandler implements ResponseController {
 
     @ExceptionHandler(DisplayNotFoundException.class)
     public ResponseEntity<ResponseDto> handleUserNotFound(DisplayNotFoundException e) {
+        log.error("404 Error : " + e.getMessage());
+        return makeResponseEntity(HttpStatus.NOT_FOUND, e.getMessage(), null);
+    }
+
+    @ExceptionHandler(FileNotFoundException.class)
+    public ResponseEntity<ResponseDto> handleUserNotFound(FileNotFoundException e) {
         log.error("404 Error : " + e.getMessage());
         return makeResponseEntity(HttpStatus.NOT_FOUND, e.getMessage(), null);
     }

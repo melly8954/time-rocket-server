@@ -121,7 +121,7 @@ public class ChestService {
     
     // 보관함 상세조회 메서드
     public ChestDetailResponse getChestDetail(Long userId, Long chestId) {
-        ChestEntity findEntity = this.chestRepository.findByChestIdAndIsDeletedFalse(chestId)
+        ChestEntity findEntity = chestRepository.findByChestIdAndIsDeletedFalse(chestId)
                 .orElseThrow(()-> new ChestNotFoundException("해당 chestId의 보관함이 존재하지 않습니다."));
 
         // 보관함의 로켓 존재 검사
@@ -181,7 +181,7 @@ public class ChestService {
     @Transactional
     // 보관함 공개 여부 변경 메서드
     public void toggleVisibility(Long chestId){
-        ChestEntity chest = this.chestRepository.findByChestIdAndIsDeletedFalseAndRocket_IsLockFalse(chestId)
+        ChestEntity chest = chestRepository.findByChestIdAndIsDeletedFalseAndRocket_IsLockFalse(chestId)
                 .orElseThrow(() -> new ChestNotFoundException("해당 chestId의 보관함이 존재하지 않거나, 삭제되었거나, 로켓이 잠금 상태입니다."));
 
         if (chest.getRocket() == null) {
@@ -210,9 +210,9 @@ public class ChestService {
             chest.setDisplayLocation(null);
         }
 
-        this.chestRepository.save(chest);
+        chestRepository.save(chest);
         // 진열장 캐시 갱신
-        this.displayService.updateDisplayCache(chest.getRocket().getReceiverUser().getUserId());
+        displayService.updateDisplayCache(chest.getRocket().getReceiverUser().getUserId());
     }
 
     // 로켓 공개 변환 시 작동하는 진열장 배치 저장 메서드
@@ -230,7 +230,7 @@ public class ChestService {
     // 보관함 로켓 논리 삭제
     @Transactional
     public void softDeleteChest(Long chestId) {
-        ChestEntity findEntity = this.chestRepository.findByChestIdAndIsDeletedFalse(chestId)
+        ChestEntity findEntity = chestRepository.findByChestIdAndIsDeletedFalse(chestId)
                 .orElseThrow(() -> new ChestNotFoundException("해당 chestId의 보관함이 존재하지 않거나 삭제된 상태입니다."));
 
         if(findEntity.getRocket() == null){
@@ -245,14 +245,14 @@ public class ChestService {
             findEntity.setPublicAt(null);
 
         }
-        this.chestRepository.save(findEntity);
-        this.displayService.updateDisplayCache(findEntity.getRocket().getReceiverUser().getUserId());
+        chestRepository.save(findEntity);
+        displayService.updateDisplayCache(findEntity.getRocket().getReceiverUser().getUserId());
     }
 
     // 삭제된 로켓 복구 메서드
     @Transactional
     public void restoreDeletedChest(Long chestId) {
-        ChestEntity findEntity = this.chestRepository.findByChestIdAndIsDeletedTrue(chestId)
+        ChestEntity findEntity = chestRepository.findByChestIdAndIsDeletedTrue(chestId)
                 .orElseThrow(() -> new ChestNotFoundException("해당 ID의 보관함이 존재하지 않거나 삭제되지 않은 상태입니다."));
 
         if(findEntity.getRocket() == null){
@@ -263,8 +263,6 @@ public class ChestService {
             findEntity.setIsDeleted(false);
             findEntity.setDeletedAt(null);
         }
-        this.chestRepository.save(findEntity);
+        chestRepository.save(findEntity);
     }
-
-
 }
