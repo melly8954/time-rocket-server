@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -19,5 +20,5 @@ public class DisplayDetailResponse {
     private String content;               // 잠금 해제 상태에서만 포함
     @JsonProperty("isLocked")  // JSON 직렬화 시 'isLocked' 으로 나오게 강제
     private boolean isLocked;
-
+    private List<RocketFileResponse> rocketFiles;
 }

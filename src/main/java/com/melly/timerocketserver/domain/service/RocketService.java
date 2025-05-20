@@ -4,8 +4,10 @@ import com.melly.timerocketserver.domain.dto.request.RocketRequestDto;
 import com.melly.timerocketserver.domain.dto.response.RocketResponse;
 import com.melly.timerocketserver.domain.entity.ChestEntity;
 import com.melly.timerocketserver.domain.entity.RocketEntity;
+import com.melly.timerocketserver.domain.entity.RocketFileEntity;
 import com.melly.timerocketserver.domain.entity.UserEntity;
 import com.melly.timerocketserver.domain.repository.ChestRepository;
+import com.melly.timerocketserver.domain.repository.RocketFileRepository;
 import com.melly.timerocketserver.domain.repository.RocketRepository;
 import com.melly.timerocketserver.domain.repository.UserRepository;
 import com.melly.timerocketserver.global.exception.RocketNotFoundException;
@@ -13,7 +15,9 @@ import com.melly.timerocketserver.global.exception.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -21,20 +25,23 @@ import java.util.*;
 @Service
 public class RocketService {
     private final RocketRepository rocketRepository;
+    private final RocketFileRepository rocketFileRepository;
     private final UserRepository userRepository;
     private final ChestRepository chestRepository;
+    private final FileService fileService;
 
-    public RocketService(RocketRepository rocketRepository,
-                         UserRepository userRepository,
-                         ChestRepository chestRepository) {
+    public RocketService(RocketRepository rocketRepository, RocketFileRepository rocketFileRepository,
+                         UserRepository userRepository, ChestRepository chestRepository, FileService fileService) {
         this.rocketRepository = rocketRepository;
+        this.rocketFileRepository = rocketFileRepository;
         this.userRepository = userRepository;
         this.chestRepository = chestRepository;
+        this.fileService = fileService;
     }
 
     // 로켓 전송
     @Transactional
-    public void sendRocket(Long userId, RocketRequestDto rocketRequestDto){
+    public void sendRocket(Long userId, RocketRequestDto rocketRequestDto, List<MultipartFile> files) throws IOException {
         String rocketName = rocketRequestDto.getRocketName();
         String rocketDesign = rocketRequestDto.getDesign();
         LocalDateTime rocketLockExpiredAt = rocketRequestDto.getLockExpiredAt();
@@ -63,6 +70,31 @@ public class RocketService {
                 .sentAt(LocalDateTime.now())
                 .build();
         rocketRepository.save(rocket);
+
+        // 파일 여러 개 저장
+        if (files != null && !files.isEmpty()) {
+            int order = 1;
+            for (MultipartFile file : files) {
+                if (!file.isEmpty()) {
+                    // saveRocketFile 에서 저장과 고유명 생성 모두 처리
+                    String savedPath = fileService.saveRocketFile(file);
+
+                    // savedPath 끝에 있는 파일명만 추출
+                    String uniqueName = savedPath.substring(savedPath.lastIndexOf("/") + 1);
+
+                    RocketFileEntity rocketFile = RocketFileEntity.builder()
+                            .rocket(rocket)
+                            .originalName(file.getOriginalFilename())
+                            .uniqueName(uniqueName)
+                            .savedPath(savedPath)
+                            .fileType(file.getContentType())
+                            .fileSize(file.getSize())
+                            .fileOrder(order++)
+                            .build();
+                    rocketFileRepository.save(rocketFile);
+                }
+            }
+        }
 
         // ChestEntity 생성 및 저장
         ChestEntity chest = ChestEntity.builder()
@@ -141,11 +173,13 @@ public class RocketService {
         RocketEntity findEntity = this.rocketRepository.findByRocketId(rocketId)
                 .orElseThrow(()-> new RocketNotFoundException("해당 로켓이 존재하지 않습니다."));
 
-        if(findEntity.getLockExpiredAt().isBefore(LocalDateTime.now())) {
-            throw new IllegalStateException("해당 로켓의 잠금 해제일이 지나지 않았습니다.");
-        }else{
-            findEntity.setIsLock(!findEntity.getIsLock());
-            this.rocketRepository.save(findEntity);
+        // 잠금 해제 가능 조건: lockExpiredAt가 현재 시각 이전 또는 같음
+        if (findEntity.getLockExpiredAt().isAfter(LocalDateTime.now())) {
+            throw new IllegalStateException("해당 로켓의 잠금 해제일이 아직 지나지 않았습니다.");
         }
+
+        // 잠금 해제 수행
+        findEntity.setIsLock(false); // '잠금 해제' 상태로 명시적으로 설정
+        this.rocketRepository.save(findEntity);
     }
 }

@@ -37,11 +37,30 @@ CREATE TABLE `group_tbl` (
   `is_private` tinyint(1) DEFAULT '0',
   `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `background_image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `is_deleted` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`group_id`),
   KEY `leader_id` (`leader_id`),
   CONSTRAINT `group_tbl_ibfk_1` FOREIGN KEY (`leader_id`) REFERENCES `user_tbl` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+
+CREATE TABLE `group_member_tbl` (
+  `group_member_id` bigint NOT NULL AUTO_INCREMENT,
+  `group_id` bigint NOT NULL,
+  `user_id` bigint NOT NULL,
+  `joined_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `is_kicked` tinyint(1) DEFAULT '0',
+  `is_saved_rocket` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`group_member_id`),
+  UNIQUE KEY `unique_group_user` (`group_id`,`user_id`),
+  KEY `fk_group_member_user` (`user_id`),
+  CONSTRAINT `fk_group_member_group` FOREIGN KEY (`group_id`) REFERENCES `group_tbl` (`group_id`),
+  CONSTRAINT `fk_group_member_user` FOREIGN KEY (`user_id`) REFERENCES `user_tbl` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
 

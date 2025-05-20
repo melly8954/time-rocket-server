@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name="rocket_tbl")
@@ -54,4 +55,7 @@ public class RocketEntity {
 
     @Column(name = "sent_at")
     private LocalDateTime sentAt;
+
+    @OneToMany(mappedBy = "rocket", cascade = CascadeType.ALL)
+    private List<RocketFileEntity> rocketFiles;
 }
