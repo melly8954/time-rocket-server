@@ -3,7 +3,10 @@ package com.melly.timerocketserver.domain.service;
 import com.melly.timerocketserver.domain.dto.response.ChestDetailResponse;
 import com.melly.timerocketserver.domain.dto.response.DisplayDetailResponse;
 import com.melly.timerocketserver.domain.dto.response.PublicChestDto;
+import com.melly.timerocketserver.domain.dto.response.RocketFileResponse;
 import com.melly.timerocketserver.domain.entity.ChestEntity;
+import com.melly.timerocketserver.domain.entity.RocketEntity;
+import com.melly.timerocketserver.domain.entity.RocketFileEntity;
 import com.melly.timerocketserver.domain.repository.ChestRepository;
 import com.melly.timerocketserver.global.exception.ChestNotFoundException;
 import com.melly.timerocketserver.global.exception.DisplayNotFoundException;
@@ -93,6 +96,7 @@ public class DisplayService {
             throw new ChestNotFoundException("본인의 진열장만 조회할 수 있습니다.");
         }
 
+        RocketEntity rocket = findEntity.getRocket();
         return DisplayDetailResponse.builder()
                 .rocketId(findEntity.getRocket().getRocketId())
                 .rocketName(findEntity.getRocket().getRocketName())
@@ -101,7 +105,26 @@ public class DisplayService {
                 .sentAt(findEntity.getRocket().getSentAt())
                 .content(findEntity.getRocket().getContent())
                 .isLocked(findEntity.getRocket().getIsLock())
+                .rocketFiles(toRocketFileResponseList(rocket.getRocketFiles()))
                 .build();
+    }
+
+    // RocketFileEntity 리스트를 RocketFileResponse 리스트로 변환
+    private List<RocketFileResponse> toRocketFileResponseList(List<RocketFileEntity> entities) {
+        if (entities == null) return null;
+
+        return entities.stream()
+                .map(file -> RocketFileResponse.builder()
+                        .fileId(file.getFileId())
+                        .originalName(file.getOriginalName())
+                        .uniqueName(file.getUniqueName())
+                        .savedPath(file.getSavedPath())
+                        .fileType(file.getFileType())
+                        .fileSize(file.getFileSize())
+                        .fileOrder(file.getFileOrder())
+                        .uploadedAt(file.getUploadedAt())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     @Transactional
