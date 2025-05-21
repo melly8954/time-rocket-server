@@ -6,12 +6,15 @@ import com.melly.timerocketserver.domain.dto.response.ChestPageResponse;
 import com.melly.timerocketserver.domain.service.ChestService;
 import com.melly.timerocketserver.global.common.ResponseController;
 import com.melly.timerocketserver.global.common.ResponseDto;
+import com.melly.timerocketserver.global.security.CustomUserDetails;
 import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,9 +28,8 @@ public class ChestController implements ResponseController {
     }
 
     // 회원별 보관함 로켓 조회
-    @GetMapping("/users/{userId}")
-    public ResponseEntity<ResponseDto> getChestList(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
-                                                    @RequestParam(required = false, defaultValue = "received") String type,
+    @GetMapping()
+    public ResponseEntity<ResponseDto> getChestList(@RequestParam(required = false, defaultValue = "received") String type,
                                                     @RequestParam(required = false, defaultValue = "self") String receiverType,
                                                     @RequestParam(required = false, defaultValue = "") String rocketName,
                                                     @RequestParam(defaultValue = "1") int page,
@@ -42,39 +44,43 @@ public class ChestController implements ResponseController {
         sortBy = order.equalsIgnoreCase("desc") ? sortBy.descending() : sortBy.ascending();
         Pageable pageable = PageRequest.of(page - 1, size, sortBy);
 
-        ChestPageResponse chestList = chestService.getChestList(userId, rocketName, pageable, type, receiverType);
+        ChestPageResponse chestList = chestService.getChestList(getUserId(), rocketName, pageable, type, receiverType);
 
         return makeResponseEntity(HttpStatus.OK, "보관함에 저장된 로켓 목록을 불러왔습니다.", chestList);
     }
 
     // 보관함 로켓 상세 조회
-    @GetMapping("/users/{userId}/details/{chestId}")
-    public ResponseEntity<ResponseDto> getChestDetail(@PathVariable @Min(value = 1, message = "userId는 1 이상이어야 합니다.") Long userId,
-                                                      @PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
-        ChestDetailResponse chestDetail = chestService.getChestDetail(userId, chestId);
+    @GetMapping("/{chestId}")
+    public ResponseEntity<ResponseDto> getChestDetail(@PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
+        ChestDetailResponse chestDetail = chestService.getChestDetail(getUserId(), chestId);
         return makeResponseEntity(HttpStatus.OK, "보관함의 로켓 상세 정보를 불러왔습니다.", chestDetail);
     }
 
     // 보관함 로켓 공개 여부 변경
     @PatchMapping("/{chestId}/visibility")
     public ResponseEntity<ResponseDto> toggleVisibility(@PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
-        chestService.toggleVisibility(chestId);
+        chestService.toggleVisibility(getUserId(), chestId);
         return makeResponseEntity(HttpStatus.OK, "로켓의 공개 여부가 변경되었습니다.", null);
     }
 
     // 보관함 로켓 논리 삭제
     @PatchMapping("/{chestId}/deleted-flag")
     public ResponseEntity<ResponseDto> softDeleteChest(@PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
-        chestService.softDeleteChest(chestId);
+        chestService.softDeleteChest(getUserId(), chestId);
         return makeResponseEntity(HttpStatus.OK, "해당 로켓이 삭제되었습니다.", null);
     }
 
     // 보관함 로켓 복구
     @PatchMapping("/{chestId}/restoration")
     public ResponseEntity<ResponseDto> restoreDeletedChest(@PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
-        chestService.restoreDeletedChest(chestId);
+        chestService.restoreDeletedChest(getUserId(), chestId);
         return makeResponseEntity(HttpStatus.OK,"삭제된 로켓의 복구를 성공했습니다.",null);
     }
 
-
+    // 유저 ID 추출
+    private Long getUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        return userDetails.getUser().getUserId();
+    }
 }
