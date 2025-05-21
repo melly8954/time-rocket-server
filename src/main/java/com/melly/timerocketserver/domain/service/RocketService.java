@@ -151,27 +151,27 @@ public class RocketService {
 
     // 로켓 임시저장 불러오기
     public RocketResponse getTempRocket(Long userId) {
-        Optional<RocketEntity> existingTemp = rocketRepository.findBySenderUser_UserIdAndIsTemp(userId, true);
-        RocketEntity tempRocket = existingTemp
+        RocketEntity findEntity = rocketRepository.findBySenderUser_UserIdAndIsTemp(userId, true)
                 .orElseThrow(() -> new RocketNotFoundException("해당 회원은 임시 저장된 로켓이 존재하지 않습니다."));
 
-        String receiverEmail = tempRocket.getReceiverUser() != null
-                ? tempRocket.getReceiverUser().getEmail()
+        String receiverEmail = findEntity.getReceiverUser() != null
+                ? findEntity.getReceiverUser().getEmail()
                 : null;
+
         // RocketEntity → RocketResponse 변환
         return RocketResponse.builder()
-                .rocketName(tempRocket.getRocketName())
-                .design(tempRocket.getDesign())
-                .lockExpiredAt(tempRocket.getLockExpiredAt())
-                .receiverType(tempRocket.getReceiverType())
+                .rocketName(findEntity.getRocketName())
+                .design(findEntity.getDesign())
+                .lockExpiredAt(findEntity.getLockExpiredAt())
+                .receiverType(findEntity.getReceiverType())
                 .receiverEmail(receiverEmail)
-                .content(tempRocket.getContent())
+                .content(findEntity.getContent())
                 .build();
     }
 
     public void unlockRocket(Long userId, Long rocketId, Boolean rocketLockStatus) {
-        RocketEntity findEntity = rocketRepository.findByRocketId(rocketId)
-                .orElseThrow(()-> new RocketNotFoundException("해당 로켓이 존재하지 않습니다."));
+        RocketEntity findEntity = rocketRepository.findByRocketIdAndIsLockTrue(rocketId)
+                .orElseThrow(()-> new RocketNotFoundException("해당 로켓은 존재하지 않거나 이미 잠금이 해제된 로켓입니다."));
 
         if (!findEntity.getReceiverUser().getUserId().equals(userId)) {
             throw new IllegalStateException("해당 로켓에 대한 권한이 없습니다.");
