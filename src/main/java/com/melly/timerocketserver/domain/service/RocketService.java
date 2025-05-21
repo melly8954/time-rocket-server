@@ -169,9 +169,13 @@ public class RocketService {
                 .build();
     }
 
-    public void unlockRocket(Long rocketId) {
+    public void unlockRocket(Long userId, Long rocketId, Boolean rocketLockStatus) {
         RocketEntity findEntity = rocketRepository.findByRocketId(rocketId)
                 .orElseThrow(()-> new RocketNotFoundException("해당 로켓이 존재하지 않습니다."));
+
+        if (!findEntity.getReceiverUser().getUserId().equals(userId)) {
+            throw new IllegalStateException("해당 로켓에 대한 권한이 없습니다.");
+        }
 
         // 잠금 해제 가능 조건: lockExpiredAt가 현재 시각 이전 또는 같음
         if (findEntity.getLockExpiredAt().isAfter(LocalDateTime.now())) {
@@ -179,7 +183,7 @@ public class RocketService {
         }
 
         // 잠금 해제 수행
-        findEntity.setIsLock(false); // '잠금 해제' 상태로 명시적으로 설정
+        findEntity.setIsLock(rocketLockStatus); // '잠금 해제' 상태로 명시적으로 설정
         rocketRepository.save(findEntity);
     }
 }
