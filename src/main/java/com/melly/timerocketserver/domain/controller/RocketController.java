@@ -53,10 +53,9 @@ public class RocketController implements ResponseController {
     }
 
     // 로켓 잠금 해제
-    @PatchMapping("/{rocketId}")
-    public ResponseEntity<ResponseDto> unlockRocket(@PathVariable @Min(value = 1, message = "rocketId는 1 이상이어야 합니다.") Long rocketId,
-                                                    @RequestBody RocketUnLockRequest request){
-        rocketService.unlockRocket(getUserId(), rocketId, request.getRocketLockStatus());
+    @PatchMapping("/{rocketId}/unlock")
+    public ResponseEntity<ResponseDto> unlockRocket(@PathVariable @Min(value = 1, message = "rocketId는 1 이상이어야 합니다.") Long rocketId){
+        rocketService.unlockRocket(getUserId(), rocketId);
         return makeResponseEntity(HttpStatus.OK, "로켓의 잠금이 해제되었습니다.", null);
     }
 

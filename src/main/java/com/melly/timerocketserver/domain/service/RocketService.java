@@ -179,7 +179,7 @@ public class RocketService {
                 .build();
     }
 
-    public void unlockRocket(Long userId, Long rocketId, Boolean rocketLockStatus) {
+    public void unlockRocket(Long userId, Long rocketId) {
         RocketEntity findEntity = rocketRepository.findByRocketIdAndIsLockTrue(rocketId)
                 .orElseThrow(()-> new RocketNotFoundException("해당 로켓은 존재하지 않거나 이미 잠금이 해제된 로켓입니다."));
 
@@ -193,7 +193,7 @@ public class RocketService {
         }
 
         // 잠금 해제 수행
-        findEntity.setIsLock(rocketLockStatus); // '잠금 해제' 상태로 명시적으로 설정
+        findEntity.setIsLock(false); // '잠금 해제' 상태로 명시적으로 설정
         rocketRepository.save(findEntity);
     }
 }
