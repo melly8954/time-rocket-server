@@ -55,6 +55,16 @@ public class RocketService {
         UserEntity receiver = userRepository.findByEmail(rocketReceiverEmail)
                 .orElseThrow(() -> new UserNotFoundException("수신자 이메일을 찾을 수 없습니다."));
 
+        // 다른 사람에게 보내는 로켓인데, 송신자 == 수신자인 경우
+        if ("other".equalsIgnoreCase(rocketReceiverType) && sender.getUserId().equals(receiver.getUserId())) {
+            throw new IllegalArgumentException("다른 사람에게 보내는 로켓에서 수신자와 송신자가 같을 수 없습니다.");
+        }
+
+        // 나에게 보내는 로켓인데, 송신자 != 수신자인 경우
+        if ("self".equalsIgnoreCase(rocketReceiverType) && !sender.getUserId().equals(receiver.getUserId())) {
+            throw new IllegalArgumentException("자기 자신에게 보내는 로켓에서 수신자와 송신자가 달라서는 안 됩니다.");
+        }
+
         // RocketEntity 생성
         RocketEntity rocket = RocketEntity.builder()
                 .rocketName(rocketName)
