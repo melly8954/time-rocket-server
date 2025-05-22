@@ -4,6 +4,7 @@ import com.melly.timerocketserver.global.common.ResponseController;
 import com.melly.timerocketserver.global.common.ResponseDto;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -98,6 +99,12 @@ public class GlobalExceptionHandler implements ResponseController {
     public ResponseEntity<ResponseDto> handleMaxSizeException(MaxUploadSizeExceededException ex) {
         log.error("413 Error : 파일 업로드 용량 초과 - {}", ex.getMessage());
         return makeResponseEntity(HttpStatus.PAYLOAD_TOO_LARGE, "파일 크기 또는 전체 업로드 용량이 허용 범위를 초과했습니다. (단일 파일 10MB, 총합 20MB 제한)", null);
+    }
+
+    @ExceptionHandler(RedisConnectionFailureException.class)
+    public ResponseEntity<ResponseDto> handleRedisConnectionException(RedisConnectionFailureException ex) {
+        log.error("500 Error : Unable to connect to Redis", ex);
+        return makeResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 연결 오류", null);
     }
 
     @ExceptionHandler(Exception.class)
