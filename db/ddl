@@ -101,3 +101,21 @@ CREATE TABLE `chest_tbl` (
   KEY `rocket_id` (`rocket_id`),
   CONSTRAINT `chest_tbl_ibfk_1` FOREIGN KEY (`rocket_id`) REFERENCES `rocket_tbl` (`rocket_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+
+CREATE TABLE `rocket_file_tbl` (
+  `file_id` bigint NOT NULL AUTO_INCREMENT,
+  `rocket_id` bigint NOT NULL,
+  `original_name` varchar(255) DEFAULT NULL,
+  `unique_name` varchar(255) DEFAULT NULL,
+  `saved_path` varchar(500) DEFAULT NULL,
+  `file_type` varchar(100) DEFAULT NULL,
+  `file_size` bigint DEFAULT NULL,
+  `file_order` int DEFAULT '0',
+  `uploaded_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`file_id`),
+  UNIQUE KEY `uk_unique_name` (`unique_name`),
+  KEY `rocket_id` (`rocket_id`),
+  CONSTRAINT `rocket_file_tbl_ibfk_1` FOREIGN KEY (`rocket_id`) REFERENCES `rocket_tbl` (`rocket_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=80 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
