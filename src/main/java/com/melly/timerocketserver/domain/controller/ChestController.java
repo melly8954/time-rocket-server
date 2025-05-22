@@ -3,15 +3,19 @@ package com.melly.timerocketserver.domain.controller;
 import com.melly.timerocketserver.domain.dto.request.DisplayLocationMoveRequest;
 import com.melly.timerocketserver.domain.dto.response.ChestDetailResponse;
 import com.melly.timerocketserver.domain.dto.response.ChestPageResponse;
+import com.melly.timerocketserver.domain.dto.response.RocketSentDetailResponse;
 import com.melly.timerocketserver.domain.service.ChestService;
 import com.melly.timerocketserver.global.common.ResponseController;
 import com.melly.timerocketserver.global.common.ResponseDto;
+import com.melly.timerocketserver.global.security.CustomUserDetails;
 import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,7 +46,7 @@ public class ChestController implements ResponseController {
         sortBy = order.equalsIgnoreCase("desc") ? sortBy.descending() : sortBy.ascending();
         Pageable pageable = PageRequest.of(page - 1, size, sortBy);
 
-        ChestPageResponse chestList = chestService.getChestList(userId, rocketName, pageable, type, receiverType);
+        Object chestList = chestService.getChestList(userId, rocketName, pageable, type, receiverType);
 
         return makeResponseEntity(HttpStatus.OK, "보관함에 저장된 로켓 목록을 불러왔습니다.", chestList);
     }
@@ -55,6 +59,13 @@ public class ChestController implements ResponseController {
         return makeResponseEntity(HttpStatus.OK, "보관함의 로켓 상세 정보를 불러왔습니다.", chestDetail);
     }
 
+    @GetMapping("/users/{userId}/sent-details/{rocketSentId}")
+    public ResponseEntity<ResponseDto> getSentRocketDetail(@PathVariable Long userId,
+                                                           @PathVariable Long rocketSentId) {
+        RocketSentDetailResponse response = chestService.getSentRocketDetail(userId, rocketSentId);
+        return makeResponseEntity(HttpStatus.OK, "보낸 로켓 상세 정보를 불러왔습니다.", response);
+    }
+
     // 보관함 로켓 공개 여부 변경
     @PatchMapping("/{chestId}/visibility")
     public ResponseEntity<ResponseDto> toggleVisibility(@PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
@@ -65,8 +76,22 @@ public class ChestController implements ResponseController {
     // 보관함 로켓 논리 삭제
     @PatchMapping("/{chestId}/deleted-flag")
     public ResponseEntity<ResponseDto> softDeleteChest(@PathVariable @Min(value = 1, message = "chestId는 1 이상이어야 합니다.") Long chestId){
-        chestService.softDeleteChest(chestId);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getUser().getUserId();
+        chestService.softDeleteChest(userId, chestId);
         return makeResponseEntity(HttpStatus.OK, "해당 로켓이 삭제되었습니다.", null);
+    }
+
+    // 보낸 로켓함 논리 삭제
+    @PatchMapping("/sent/{rocketSentId}/deleted-flag")
+    public ResponseEntity<ResponseDto> softDeleteSent(@PathVariable Long rocketSentId) {
+        // 인증, userId 추출 등 동일
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getUser().getUserId();
+        chestService.softDeleteSent(userId, rocketSentId);
+        return makeResponseEntity(HttpStatus.OK, "해당 보낸 로켓이 삭제되었습니다.", null);
     }
 
     // 보관함 로켓 복구

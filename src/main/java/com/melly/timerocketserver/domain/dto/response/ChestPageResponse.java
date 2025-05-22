@@ -40,6 +40,8 @@ public class ChestPageResponse {
         private String receiverEmail;
         private String content;
         private LocalDateTime lockExpiredAt;
+        @JsonProperty("isLock")
+        private boolean isLock;
         @JsonProperty("isPublic")  // JSON 직렬화 시 'isPublic'으로 나오게 강제
         private boolean isPublic;
         private LocalDateTime publicAt;

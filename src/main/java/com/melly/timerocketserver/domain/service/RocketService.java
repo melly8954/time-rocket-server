@@ -2,14 +2,8 @@ package com.melly.timerocketserver.domain.service;
 
 import com.melly.timerocketserver.domain.dto.request.RocketRequestDto;
 import com.melly.timerocketserver.domain.dto.response.RocketResponse;
-import com.melly.timerocketserver.domain.entity.ChestEntity;
-import com.melly.timerocketserver.domain.entity.RocketEntity;
-import com.melly.timerocketserver.domain.entity.RocketFileEntity;
-import com.melly.timerocketserver.domain.entity.UserEntity;
-import com.melly.timerocketserver.domain.repository.ChestRepository;
-import com.melly.timerocketserver.domain.repository.RocketFileRepository;
-import com.melly.timerocketserver.domain.repository.RocketRepository;
-import com.melly.timerocketserver.domain.repository.UserRepository;
+import com.melly.timerocketserver.domain.entity.*;
+import com.melly.timerocketserver.domain.repository.*;
 import com.melly.timerocketserver.global.exception.RocketNotFoundException;
 import com.melly.timerocketserver.global.exception.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -25,14 +19,16 @@ import java.util.*;
 @Service
 public class RocketService {
     private final RocketRepository rocketRepository;
+    private final RocketSentRepository rocketSentRepository;
     private final RocketFileRepository rocketFileRepository;
     private final UserRepository userRepository;
     private final ChestRepository chestRepository;
     private final FileService fileService;
 
-    public RocketService(RocketRepository rocketRepository, RocketFileRepository rocketFileRepository,
+    public RocketService(RocketRepository rocketRepository, RocketSentRepository rocketSentRepository, RocketFileRepository rocketFileRepository,
                          UserRepository userRepository, ChestRepository chestRepository, FileService fileService) {
         this.rocketRepository = rocketRepository;
+        this.rocketSentRepository = rocketSentRepository;
         this.rocketFileRepository = rocketFileRepository;
         this.userRepository = userRepository;
         this.chestRepository = chestRepository;
@@ -70,6 +66,14 @@ public class RocketService {
                 .sentAt(LocalDateTime.now())
                 .build();
         rocketRepository.save(rocket);
+
+        // 보낸 로켓 관리 엔티티 저장
+        RocketSentEntity rocketSent = RocketSentEntity.builder()
+                .rocket(rocket)
+                .sender(sender)
+                .isDeleted(false)
+                .build();
+        rocketSentRepository.save(rocketSent);
 
         // 파일 여러 개 저장
         if (files != null && !files.isEmpty()) {
