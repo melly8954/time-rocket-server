@@ -27,15 +27,18 @@ public class RocketService {
     private final RocketRepository rocketRepository;
     private final RocketFileRepository rocketFileRepository;
     private final UserRepository userRepository;
-    private final ChestRepository chestRepository;
+    private final ReceivedChestRepository receivedChestRepository;
+    private final SentChestRepository sentChestRepository;
     private final FileService fileService;
 
     public RocketService(RocketRepository rocketRepository, RocketFileRepository rocketFileRepository,
-                         UserRepository userRepository, ChestRepository chestRepository, FileService fileService) {
+                         UserRepository userRepository, ReceivedChestRepository receivedChestRepository,
+                         SentChestRepository sentChestRepository, FileService fileService) {
         this.rocketRepository = rocketRepository;
         this.rocketFileRepository = rocketFileRepository;
         this.userRepository = userRepository;
-        this.chestRepository = chestRepository;
+        this.receivedChestRepository = receivedChestRepository;
+        this.sentChestRepository = sentChestRepository;
         this.fileService = fileService;
     }
 
@@ -54,6 +57,11 @@ public class RocketService {
                 .orElseThrow(() -> new UserNotFoundException("보내는 사용자를 찾을 수 없습니다."));
         UserEntity receiver = userRepository.findByEmail(rocketReceiverEmail)
                 .orElseThrow(() -> new UserNotFoundException("수신자 이메일을 찾을 수 없습니다."));
+
+        // 나에게 보내는 로켓인데, 송신자 != 수신자인 경우
+        if ("self".equalsIgnoreCase(rocketReceiverType) && !sender.getUserId().equals(receiver.getUserId())) {
+            throw new IllegalArgumentException("자기 자신에게 보내는 로켓에서 수신자와 송신자가 달라서는 안 됩니다.");
+        }
 
         // RocketEntity 생성
         RocketEntity rocket = RocketEntity.builder()
@@ -97,13 +105,20 @@ public class RocketService {
         }
 
         // ChestEntity 생성 및 저장
-        ChestEntity chest = ChestEntity.builder()
+        ReceivedChestEntity chest = ReceivedChestEntity.builder()
                 .rocket(rocket)
                 .isPublic(false)
                 .publicAt(null)
                 .isDeleted(false)
                 .build();
-        chestRepository.save(chest);
+        receivedChestRepository.save(chest);
+
+        // 보낸 로켓 관리 엔티티 저장
+        SentChestEntity rocketSent = SentChestEntity.builder()
+                .rocket(rocket)
+                .isDeleted(false)
+                .build();
+        sentChestRepository.save(rocketSent);
     }
 
     // 로켓 임시저장
@@ -151,27 +166,31 @@ public class RocketService {
 
     // 로켓 임시저장 불러오기
     public RocketResponse getTempRocket(Long userId) {
-        Optional<RocketEntity> existingTemp = rocketRepository.findBySenderUser_UserIdAndIsTemp(userId, true);
-        RocketEntity tempRocket = existingTemp
+        RocketEntity findEntity = rocketRepository.findBySenderUser_UserIdAndIsTemp(userId, true)
                 .orElseThrow(() -> new RocketNotFoundException("해당 회원은 임시 저장된 로켓이 존재하지 않습니다."));
 
-        String receiverEmail = tempRocket.getReceiverUser() != null
-                ? tempRocket.getReceiverUser().getEmail()
+        String receiverEmail = findEntity.getReceiverUser() != null
+                ? findEntity.getReceiverUser().getEmail()
                 : null;
+
         // RocketEntity → RocketResponse 변환
         return RocketResponse.builder()
-                .rocketName(tempRocket.getRocketName())
-                .design(tempRocket.getDesign())
-                .lockExpiredAt(tempRocket.getLockExpiredAt())
-                .receiverType(tempRocket.getReceiverType())
+                .rocketName(findEntity.getRocketName())
+                .design(findEntity.getDesign())
+                .lockExpiredAt(findEntity.getLockExpiredAt())
+                .receiverType(findEntity.getReceiverType())
                 .receiverEmail(receiverEmail)
-                .content(tempRocket.getContent())
+                .content(findEntity.getContent())
                 .build();
     }
 
-    public void unlockRocket(Long rocketId) {
-        RocketEntity findEntity = rocketRepository.findByRocketId(rocketId)
-                .orElseThrow(()-> new RocketNotFoundException("해당 로켓이 존재하지 않습니다."));
+    public void unlockRocket(Long userId, Long rocketId) {
+        RocketEntity findEntity = rocketRepository.findByRocketIdAndIsLockTrue(rocketId)
+                .orElseThrow(()-> new RocketNotFoundException("해당 로켓은 존재하지 않거나 이미 잠금이 해제된 로켓입니다."));
+
+        if (!findEntity.getReceiverUser().getUserId().equals(userId)) {
+            throw new IllegalStateException("해당 로켓에 대한 권한이 없습니다.");
+        }
 
         // 잠금 해제 가능 조건: lockExpiredAt가 현재 시각 이전 또는 같음
         if (findEntity.getLockExpiredAt().isAfter(LocalDateTime.now())) {
