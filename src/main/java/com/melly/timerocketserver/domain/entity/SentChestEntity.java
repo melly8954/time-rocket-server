@@ -5,34 +5,25 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "chest_tbl")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ChestEntity {
+@Table(name="sent_chest_tbl")
+@Entity
+public class SentChestEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "chest_id")
-    private Long chestId;
+    @Column(name = "sent_chest_id")
+    private Long sentChestId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rocket_id")
     private RocketEntity rocket;
 
-    @Column(name = "is_public")
-    private Boolean isPublic;  // tinyint(1) -> Boolean 처리
-
-    @Column(name = "public_at")
-    private LocalDateTime publicAt;
-
-    @Column(name = "display_location")
-    private Long displayLocation;
-
     @Column(name = "is_deleted")
-    private Boolean isDeleted;  // tinyint(1) -> Boolean 처리
+    private Boolean isDeleted;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;

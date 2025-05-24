@@ -83,6 +83,12 @@ public class GlobalExceptionHandler implements ResponseController {
         return makeResponseEntity(HttpStatus.NOT_FOUND, e.getMessage(), null);
     }
 
+    @ExceptionHandler(ChestAccessDeniedException.class)
+    public ResponseEntity<ResponseDto> handleUserNotFound(ChestAccessDeniedException e) {
+        log.error("404 Error : " + e.getMessage());
+        return makeResponseEntity(HttpStatus.NOT_FOUND, e.getMessage(), null);
+    }
+
     @ExceptionHandler(DisplayNotFoundException.class)
     public ResponseEntity<ResponseDto> handleUserNotFound(DisplayNotFoundException e) {
         log.error("404 Error : " + e.getMessage());

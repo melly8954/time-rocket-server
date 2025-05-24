@@ -11,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ChestDetailResponse {
+public class ReceivedChestDetailResponse {
     private Long rocketId;
     private String rocketName;
     private String designUrl;
