@@ -102,7 +102,7 @@ public class ChestService {
     
     // 보관함 상세조회 메서드
     public ChestDetailResponse getChestDetail(Long userId, Long chestId) {
-        ChestEntity findChest = chestRepository.findByChestIdAndIsDeletedFalseAndRocketIsNotNullAndRocket_ReceiverUser_UserId(chestId, userId)
+        ChestEntity findChest = chestRepository.findByChestIdAndIsDeletedFalseAndRocket_ReceiverUser_UserId(chestId, userId)
                 .orElseThrow(() -> new ChestNotFoundException("본인의 보관함에 로켓이 존재하지 않거나 삭제된 상태입니다."));
 
         RocketEntity rocket = findChest.getRocket();
@@ -204,9 +204,8 @@ public class ChestService {
     // 보관함 로켓 논리 삭제
     @Transactional
     public void softDeleteChest(Long userId, Long chestId) {
-        ChestEntity findChest = chestRepository.findByChestIdAndIsDeletedFalseAndRocketIsNotNullAndRocket_ReceiverUser_UserId(chestId, userId)
+        ChestEntity findChest = chestRepository.findByChestIdAndIsDeletedFalseAndRocket_ReceiverUser_UserId(chestId, userId)
                 .orElseThrow(() -> new ChestNotFoundException("본인의 보관함에 로켓이 존재하지 않거나 삭제된 상태입니다."));
-
         // 논리 삭제
         if(!findChest.getIsDeleted()){
             findChest.setIsDeleted(true);

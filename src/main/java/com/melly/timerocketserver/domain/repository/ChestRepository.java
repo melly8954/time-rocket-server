@@ -28,7 +28,7 @@ public interface ChestRepository extends JpaRepository<ChestEntity, Long> {
     Long countByIsDeletedFalseAndRocket_SenderUser_UserId(Long userId);
 
     // 보관함 조회 - 삭제되지 않은 본인 보관함을 chestId로 조회
-    Optional<ChestEntity> findByChestIdAndIsDeletedFalseAndRocketIsNotNullAndRocket_ReceiverUser_UserId(Long chestId, Long userId);
+    Optional<ChestEntity> findByChestIdAndIsDeletedFalseAndRocket_ReceiverUser_UserId(Long chestId, Long userId);
 
     // 보관함 조회 - 삭제되지 않고 잠금이 해제된 보관함을 chestId로 조회 
     Optional<ChestEntity> findByChestIdAndIsDeletedFalseAndRocket_IsLockFalse(Long chestId);

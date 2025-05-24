@@ -79,7 +79,7 @@ public class SentChestService {
     }
 
     public SentChestDetailResponse getSentChestDetail(Long userId, Long sentChestId) {
-        SentChestEntity findEntity = sentChestRepository.findByIsDeletedFalseAndSentChestIdAndRocketIsNotNullAndRocket_SenderUser_UserId(sentChestId, userId)
+        SentChestEntity findEntity = sentChestRepository.findByIsDeletedFalseAndSentChestIdAndRocket_SenderUser_UserId(sentChestId, userId)
                 .orElseThrow(() -> new ChestNotFoundException("해당 수신 보관함의 로켓은 존재하지 않거나 삭제된 상태입니다."));
 
         return SentChestDetailResponse.builder()
@@ -113,7 +113,7 @@ public class SentChestService {
     }
 
     public void softDeleteSentChest(Long userId, Long sentChestId) {
-        SentChestEntity findEntity = sentChestRepository.findByIsDeletedFalseAndSentChestIdAndRocketIsNotNullAndRocket_SenderUser_UserId(sentChestId, userId)
+        SentChestEntity findEntity = sentChestRepository.findByIsDeletedFalseAndSentChestIdAndRocket_SenderUser_UserId(sentChestId, userId)
                 .orElseThrow(() -> new ChestNotFoundException("해당 수신 보관함의 로켓은 존재하지 않거나 삭제된 상태입니다."));
         // 논리 삭제
         if(!findEntity.getIsDeleted()){
