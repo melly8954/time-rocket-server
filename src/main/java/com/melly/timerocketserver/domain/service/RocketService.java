@@ -21,17 +21,17 @@ public class RocketService {
     private final RocketRepository rocketRepository;
     private final RocketFileRepository rocketFileRepository;
     private final UserRepository userRepository;
-    private final ChestRepository chestRepository;
+    private final ReceivedChestRepository receivedChestRepository;
     private final SentChestRepository sentChestRepository;
     private final FileService fileService;
 
     public RocketService(RocketRepository rocketRepository, RocketFileRepository rocketFileRepository,
-                         UserRepository userRepository, ChestRepository chestRepository,
+                         UserRepository userRepository, ReceivedChestRepository receivedChestRepository,
                          SentChestRepository sentChestRepository, FileService fileService) {
         this.rocketRepository = rocketRepository;
         this.rocketFileRepository = rocketFileRepository;
         this.userRepository = userRepository;
-        this.chestRepository = chestRepository;
+        this.receivedChestRepository = receivedChestRepository;
         this.sentChestRepository = sentChestRepository;
         this.fileService = fileService;
     }
@@ -99,13 +99,13 @@ public class RocketService {
         }
 
         // ChestEntity 생성 및 저장
-        ChestEntity chest = ChestEntity.builder()
+        ReceivedChestEntity chest = ReceivedChestEntity.builder()
                 .rocket(rocket)
                 .isPublic(false)
                 .publicAt(null)
                 .isDeleted(false)
                 .build();
-        chestRepository.save(chest);
+        receivedChestRepository.save(chest);
 
         // 보낸 로켓 관리 엔티티 저장
         SentChestEntity rocketSent = SentChestEntity.builder()

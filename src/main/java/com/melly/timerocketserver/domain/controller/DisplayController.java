@@ -1,9 +1,8 @@
 package com.melly.timerocketserver.domain.controller;
 
 import com.melly.timerocketserver.domain.dto.request.DisplayLocationMoveRequest;
-import com.melly.timerocketserver.domain.dto.response.ChestDetailResponse;
 import com.melly.timerocketserver.domain.dto.response.DisplayDetailResponse;
-import com.melly.timerocketserver.domain.dto.response.PublicChestDto;
+import com.melly.timerocketserver.domain.dto.response.DisplayDto;
 import com.melly.timerocketserver.domain.service.DisplayService;
 import com.melly.timerocketserver.global.common.ResponseController;
 import com.melly.timerocketserver.global.common.ResponseDto;
@@ -28,7 +27,7 @@ public class DisplayController implements ResponseController {
 
     @GetMapping()
     public ResponseEntity<ResponseDto> getDisplayList() {
-        List<PublicChestDto> displayList = displayService.getDisplayList(getUserId());
+        List<DisplayDto> displayList = displayService.getDisplayList(getUserId());
         return makeResponseEntity(HttpStatus.OK, "진열장 조회 성공", displayList);
     }
 
@@ -41,7 +40,7 @@ public class DisplayController implements ResponseController {
     // 진열장 로켓 배치 이동
     @PatchMapping("/location")
     public ResponseEntity<ResponseDto> moveLocation(@RequestBody DisplayLocationMoveRequest request) {
-        displayService.moveLocation(request.getSourceChestId(), request.getTargetChestId());
+        displayService.moveLocation(request.getSourceChestId(), request.getTargetChestId(), getUserId());
         return makeResponseEntity(HttpStatus.OK, "진열장의 로켓 배치이동이 완료되었습니다.", null);
     }
 

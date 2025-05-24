@@ -6,17 +6,17 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "chest_tbl")
+@Table(name = "received_chest_tbl")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ChestEntity {
+public class ReceivedChestEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "chest_id")
-    private Long chestId;
+    @Column(name = "received_chest_id")
+    private Long receivedChestId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rocket_id")

@@ -30,7 +30,7 @@ public class ReceivedChestPageResponse {
     @NoArgsConstructor
     @Builder
     public static class ReceivedChestDto {
-        private Long chestId;
+        private Long receivedChestId;
         private Long rocketId;
         private String rocketName;
         private String designUrl;
