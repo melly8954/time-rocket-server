@@ -3,6 +3,8 @@ package com.melly.timerocketserver.domain.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -20,10 +22,9 @@ public class SentChestEntity {
     @JoinColumn(name = "rocket_id")
     private RocketEntity rocket;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sender_id")
-    private UserEntity sender;
-
     @Column(name = "is_deleted")
     private Boolean isDeleted;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 }

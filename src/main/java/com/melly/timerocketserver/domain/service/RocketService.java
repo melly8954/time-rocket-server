@@ -110,7 +110,6 @@ public class RocketService {
         // 보낸 로켓 관리 엔티티 저장
         SentChestEntity rocketSent = SentChestEntity.builder()
                 .rocket(rocket)
-                .sender(sender)
                 .isDeleted(false)
                 .build();
         sentChestRepository.save(rocketSent);

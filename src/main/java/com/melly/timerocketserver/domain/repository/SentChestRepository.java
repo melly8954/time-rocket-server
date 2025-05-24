@@ -14,18 +14,7 @@ public interface SentChestRepository extends JpaRepository<SentChestEntity,Long>
 
     Long countByIsDeletedFalseAndRocket_SenderUser_UserId(Long userId);
 
-    // userId로 isDeleted 가 false 인 sent 로켓 전체 조회 (페이징)
-    Page<SentChestEntity> findByIsDeletedFalseAndSender_UserId(Long userId, Pageable pageable);
+    Optional<SentChestEntity> findByIsDeletedFalseAndSentChestIdAndRocketIsNotNullAndRocket_SenderUser_UserId(Long sentChestId, Long userId);
 
-    // userId, 로켓 이름 포함 조건으로 isDeleted 가 false 인 sent 로켓 조회 (페이징)
-    Page<SentChestEntity> findByIsDeletedFalseAndSender_UserIdAndRocket_RocketNameContaining(Long userId, String rocketName, Pageable pageable);
 
-    // userId로 isDeleted 가 false 인 sent 로켓 수 카운트
-    Long countByIsDeletedFalseAndSender_UserId(Long userId);
-
-    Optional<SentChestEntity> findByRocketAndSender_UserIdAndIsDeletedFalse(RocketEntity rocket, Long sender);
-
-    Optional<SentChestEntity> findBySentChestIdAndSender_UserIdAndIsDeletedFalse(Long rocketSentId, Long sender);
-
-    Optional<SentChestEntity> findBySentChestIdAndIsDeletedFalse(Long rocketSentId);
 }

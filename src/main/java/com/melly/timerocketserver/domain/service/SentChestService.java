@@ -1,6 +1,9 @@
 package com.melly.timerocketserver.domain.service;
 
+import com.melly.timerocketserver.domain.dto.response.RocketFileResponse;
+import com.melly.timerocketserver.domain.dto.response.SentChestDetailResponse;
 import com.melly.timerocketserver.domain.dto.response.SentChestPageResponse;
+import com.melly.timerocketserver.domain.entity.RocketFileEntity;
 import com.melly.timerocketserver.domain.entity.SentChestEntity;
 import com.melly.timerocketserver.domain.repository.SentChestRepository;
 import com.melly.timerocketserver.global.exception.ChestNotFoundException;
@@ -8,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -72,5 +76,50 @@ public class SentChestService {
                 .sortDirection(sortDirection)
                 .sentCount(sentCount)
                 .build();
+    }
+
+    public SentChestDetailResponse getSentChestDetail(Long userId, Long sentChestId) {
+        SentChestEntity findEntity = sentChestRepository.findByIsDeletedFalseAndSentChestIdAndRocketIsNotNullAndRocket_SenderUser_UserId(sentChestId, userId)
+                .orElseThrow(() -> new ChestNotFoundException("해당 수신 보관함의 로켓은 존재하지 않거나 삭제된 상태입니다."));
+
+        return SentChestDetailResponse.builder()
+                .rocketId(findEntity.getRocket().getRocketId())
+                .rocketName(findEntity.getRocket().getRocketName())
+                .designUrl(findEntity.getRocket().getDesign())
+                .receiverEmail(findEntity.getRocket().getReceiverUser().getEmail())
+                .sentAt(findEntity.getRocket().getSentAt())
+                .content(findEntity.getRocket().getContent())
+                .lockExpiredAt(findEntity.getRocket().getLockExpiredAt())
+                .rocketFiles(toRocketFileResponseList(findEntity.getRocket().getRocketFiles()))
+                .build();
+    }
+
+    // RocketFileEntity 리스트를 RocketFileResponse 리스트로 변환
+    private List<RocketFileResponse> toRocketFileResponseList(List<RocketFileEntity> entities) {
+        if (entities == null) return null;
+
+        return entities.stream()
+                .map(file -> RocketFileResponse.builder()
+                        .fileId(file.getFileId())
+                        .originalName(file.getOriginalName())
+                        .uniqueName(file.getUniqueName())
+                        .savedPath(file.getSavedPath())
+                        .fileType(file.getFileType())
+                        .fileSize(file.getFileSize())
+                        .fileOrder(file.getFileOrder())
+                        .uploadedAt(file.getUploadedAt())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    public void softDeleteSentChest(Long userId, Long sentChestId) {
+        SentChestEntity findEntity = sentChestRepository.findByIsDeletedFalseAndSentChestIdAndRocketIsNotNullAndRocket_SenderUser_UserId(sentChestId, userId)
+                .orElseThrow(() -> new ChestNotFoundException("해당 수신 보관함의 로켓은 존재하지 않거나 삭제된 상태입니다."));
+        // 논리 삭제
+        if(!findEntity.getIsDeleted()){
+            findEntity.setIsDeleted(true);
+            findEntity.setDeletedAt(LocalDateTime.now());
+        }
+        sentChestRepository.save(findEntity);
     }
 }
