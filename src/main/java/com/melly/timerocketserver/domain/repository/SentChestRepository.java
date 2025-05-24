@@ -9,6 +9,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface SentChestRepository extends JpaRepository<SentChestEntity,Long> {
+    Page<SentChestEntity> findByIsDeletedFalseAndRocket_SenderUser_UserId(Long userId, Pageable pageable);
+    Page<SentChestEntity> findByIsDeletedFalseAndRocket_SenderUser_UserIdAndRocket_RocketNameContaining(Long userId, String rocketName, Pageable pageable);
+
+    Long countByIsDeletedFalseAndRocket_SenderUser_UserId(Long userId);
+
     // userId로 isDeleted 가 false 인 sent 로켓 전체 조회 (페이징)
     Page<SentChestEntity> findByIsDeletedFalseAndSender_UserId(Long userId, Pageable pageable);
 

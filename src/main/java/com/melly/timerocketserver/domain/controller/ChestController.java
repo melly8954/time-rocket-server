@@ -1,8 +1,7 @@
 package com.melly.timerocketserver.domain.controller;
 
-import com.melly.timerocketserver.domain.dto.request.DisplayLocationMoveRequest;
 import com.melly.timerocketserver.domain.dto.response.ChestDetailResponse;
-import com.melly.timerocketserver.domain.dto.response.ChestPageResponse;
+import com.melly.timerocketserver.domain.dto.response.ReceivedChestPageResponse;
 import com.melly.timerocketserver.domain.service.ChestService;
 import com.melly.timerocketserver.global.common.ResponseController;
 import com.melly.timerocketserver.global.common.ResponseDto;
@@ -29,9 +28,8 @@ public class ChestController implements ResponseController {
 
     // 회원별 보관함 로켓 조회
     @GetMapping()
-    public ResponseEntity<ResponseDto> getChestList(@RequestParam(required = false, defaultValue = "received") String type,
-                                                    @RequestParam(required = false, defaultValue = "self") String receiverType,
-                                                    @RequestParam(required = false, defaultValue = "") String rocketName,
+    public ResponseEntity<ResponseDto> getChestList(@RequestParam(required = false, defaultValue = "self") String receiverType,
+                                                    @RequestParam(name="rocket-name", required = false, defaultValue = "") String rocketName,
                                                     @RequestParam(defaultValue = "1") int page,
                                                     @RequestParam(defaultValue = "10") int size,
                                                     @RequestParam(defaultValue = "chestId") String sort,
@@ -44,7 +42,7 @@ public class ChestController implements ResponseController {
         sortBy = order.equalsIgnoreCase("desc") ? sortBy.descending() : sortBy.ascending();
         Pageable pageable = PageRequest.of(page - 1, size, sortBy);
 
-        ChestPageResponse chestList = chestService.getChestList(getUserId(), rocketName, pageable, type, receiverType);
+        ReceivedChestPageResponse chestList = chestService.getReceivedChestList(getUserId(), rocketName, pageable, receiverType);
 
         return makeResponseEntity(HttpStatus.OK, "보관함에 저장된 로켓 목록을 불러왔습니다.", chestList);
     }

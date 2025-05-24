@@ -1,7 +1,7 @@
 package com.melly.timerocketserver.domain.service;
 
 import com.melly.timerocketserver.domain.dto.response.ChestDetailResponse;
-import com.melly.timerocketserver.domain.dto.response.ChestPageResponse;
+import com.melly.timerocketserver.domain.dto.response.ReceivedChestPageResponse;
 import com.melly.timerocketserver.domain.dto.response.RocketFileResponse;
 import com.melly.timerocketserver.domain.entity.ChestEntity;
 import com.melly.timerocketserver.domain.entity.RocketEntity;
@@ -30,39 +30,23 @@ public class ChestService {
     }
 
     // 보관함 조회
-    public ChestPageResponse getChestList(Long userId, String rocketName, Pageable pageable, String type, String receiverType) {
+    public ReceivedChestPageResponse getReceivedChestList(Long userId, String rocketName, Pageable pageable, String receiverType) {
         Page<ChestEntity> findEntity;
-        if (type.equals("received")) {
-            // receiverType 이 없거나 잘못된 값인 경우 예외 처리
-            if (receiverType == null || receiverType.isBlank()) {
-                throw new IllegalArgumentException("receiverType 은 'received' 타입일 때 필수입니다.");
-            }
 
-            if (!receiverType.equals("self") && !receiverType.equals("other") && !receiverType.equals("group")) {
-                throw new IllegalArgumentException("receiverType 은 'self', 'other', 'group' 중 하나여야 합니다.");
-            }
+        if (receiverType == null || receiverType.isBlank()) {
+            throw new IllegalArgumentException("receiverType 은 필수입니다.");
+        }
 
-            // receiverType과 rocketName 여부에 따라 조회
-            if (rocketName == null || rocketName.isEmpty()) {
-                findEntity = chestRepository.findByIsDeletedFalseAndRocket_ReceiverUser_UserIdAndRocket_ReceiverType(
-                        userId, receiverType, pageable);
-            } else {
-                findEntity = chestRepository.findByIsDeletedFalseAndRocket_ReceiverUser_UserIdAndRocket_ReceiverTypeAndRocket_RocketNameContaining(
-                        userId, receiverType, rocketName, pageable);
-            }
+        if (!receiverType.equals("self") && !receiverType.equals("other") && !receiverType.equals("group")) {
+            throw new IllegalArgumentException("receiverType 은 'self', 'other', 'group' 중 하나여야 합니다.");
+        }
 
-        } else if (type.equals("sent")) {
-            // 보낸 로켓 목록 조회
-            if (rocketName == null || rocketName.isEmpty()) {
-                findEntity = chestRepository.findByIsDeletedFalseAndRocket_SenderUser_UserId(
-                        userId, pageable);
-            } else {
-                findEntity = chestRepository.findByIsDeletedFalseAndRocket_SenderUser_UserIdAndRocket_RocketNameContaining(
-                        userId, rocketName, pageable);
-            }
-
+        if (rocketName == null || rocketName.isEmpty()) {
+            findEntity = chestRepository.findByIsDeletedFalseAndRocket_ReceiverUser_UserIdAndRocket_ReceiverType(
+                    userId, receiverType, pageable);
         } else {
-            throw new IllegalArgumentException("type 은 'sent' 또는 'received' 만 가능합니다.");
+            findEntity = chestRepository.findByIsDeletedFalseAndRocket_ReceiverUser_UserIdAndRocket_ReceiverTypeAndRocket_RocketNameContaining(
+                    userId, receiverType, rocketName, pageable);
         }
 
         // Page 객체는 Null 이 존재할 수 없음
@@ -70,30 +54,27 @@ public class ChestService {
             throw new ChestNotFoundException("해당 조건에 맞는 결과가 없습니다.");
         }
 
-
         // 보관함 탭마다 로켓 갯수
         Long receivedCount = chestRepository.countByIsDeletedFalseAndRocket_ReceiverUser_UserId(userId);
-        Long sentCount = chestRepository.countByIsDeletedFalseAndRocket_SenderUser_UserId(userId);
-
 
         // ChestPageResponse 의 ChestDto 로 변환하여 반환, 자바 스트림 API 사용
         // findEntity.getContent()는 여러 개의 ChestEntity 객체가 담긴 리스트를 반환
         // stream() 메서드는 findEntity.getContent()가 반환하는 객체의 타입인 List<ChestEntity>를 스트림으로 변환하여 각 요소를 처리할 수 있게 만듦
-        List<ChestPageResponse.ChestDto> chestDtoList = findEntity.getContent().stream()
-                .map(chest -> ChestPageResponse.ChestDto.builder()
-                        .chestId(chest.getChestId())
-                        .rocketId(chest.getRocket().getRocketId())
-                        .rocketName(chest.getRocket().getRocketName())
-                        .designUrl(chest.getRocket().getDesign())
-                        .senderEmail(chest.getRocket().getSenderUser().getEmail())
-                        .receiverNickname(chest.getRocket().getReceiverUser().getNickname())
-                        .receiverEmail(chest.getRocket().getReceiverUser().getEmail())
-                        .content(chest.getRocket().getContent())
-                        .lockExpiredAt(chest.getRocket().getLockExpiredAt())
-                        .isPublic(chest.getIsPublic())
-                        .publicAt(chest.getPublicAt())
+        List<ReceivedChestPageResponse.ReceivedChestDto> receivedChestDtoList = findEntity.getContent().stream()
+                .map(find -> ReceivedChestPageResponse.ReceivedChestDto.builder()
+                        .chestId(find.getChestId())
+                        .rocketId(find.getRocket().getRocketId())
+                        .rocketName(find.getRocket().getRocketName())
+                        .designUrl(find.getRocket().getDesign())
+                        .senderEmail(find.getRocket().getSenderUser().getEmail())
+                        .receiverNickname(find.getRocket().getReceiverUser().getNickname())
+                        .receiverEmail(find.getRocket().getReceiverUser().getEmail())
+                        .content(find.getRocket().getContent())
+                        .lockExpiredAt(find.getRocket().getLockExpiredAt())
+                        .isPublic(find.getIsPublic())
+                        .publicAt(find.getPublicAt())
                         .build())
-                .collect(Collectors.toList());  // 스트림에 담긴 요소들을 하나의 리스트로 모으는 역할
+                .toList();  // 스트림에 담긴 요소들을 하나의 리스트로 모으는 역할
 
         // 동적으로 정렬 기준과 정렬 방향을 반환
         String sortBy = findEntity.getSort().stream()
@@ -105,8 +86,8 @@ public class ChestService {
                 .map(order -> order.getDirection().name()) // 정렬 방향 추출 (ASC, DESC)
                 .collect(Collectors.joining(","));
 
-        return ChestPageResponse.builder()
-                .chests(chestDtoList)
+        return ReceivedChestPageResponse.builder()
+                .receivedChests(receivedChestDtoList)
                 .currentPage(findEntity.getNumber())
                 .pageSize(findEntity.getSize())
                 .totalElements(findEntity.getTotalElements())
@@ -116,7 +97,6 @@ public class ChestService {
                 .sortBy(sortBy)
                 .sortDirection(sortDirection)
                 .receivedCount(receivedCount)
-                .sentCount(sentCount)
                 .build();
     }
     
