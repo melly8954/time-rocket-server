@@ -2,14 +2,8 @@ package com.melly.timerocketserver.domain.service;
 
 import com.melly.timerocketserver.domain.dto.request.RocketRequestDto;
 import com.melly.timerocketserver.domain.dto.response.RocketResponse;
-import com.melly.timerocketserver.domain.entity.ChestEntity;
-import com.melly.timerocketserver.domain.entity.RocketEntity;
-import com.melly.timerocketserver.domain.entity.RocketFileEntity;
-import com.melly.timerocketserver.domain.entity.UserEntity;
-import com.melly.timerocketserver.domain.repository.ChestRepository;
-import com.melly.timerocketserver.domain.repository.RocketFileRepository;
-import com.melly.timerocketserver.domain.repository.RocketRepository;
-import com.melly.timerocketserver.domain.repository.UserRepository;
+import com.melly.timerocketserver.domain.entity.*;
+import com.melly.timerocketserver.domain.repository.*;
 import com.melly.timerocketserver.global.exception.RocketNotFoundException;
 import com.melly.timerocketserver.global.exception.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -28,14 +22,17 @@ public class RocketService {
     private final RocketFileRepository rocketFileRepository;
     private final UserRepository userRepository;
     private final ChestRepository chestRepository;
+    private final SentChestRepository sentChestRepository;
     private final FileService fileService;
 
     public RocketService(RocketRepository rocketRepository, RocketFileRepository rocketFileRepository,
-                         UserRepository userRepository, ChestRepository chestRepository, FileService fileService) {
+                         UserRepository userRepository, ChestRepository chestRepository,
+                         SentChestRepository sentChestRepository, FileService fileService) {
         this.rocketRepository = rocketRepository;
         this.rocketFileRepository = rocketFileRepository;
         this.userRepository = userRepository;
         this.chestRepository = chestRepository;
+        this.sentChestRepository = sentChestRepository;
         this.fileService = fileService;
     }
 
@@ -54,11 +51,6 @@ public class RocketService {
                 .orElseThrow(() -> new UserNotFoundException("보내는 사용자를 찾을 수 없습니다."));
         UserEntity receiver = userRepository.findByEmail(rocketReceiverEmail)
                 .orElseThrow(() -> new UserNotFoundException("수신자 이메일을 찾을 수 없습니다."));
-
-        // 다른 사람에게 보내는 로켓인데, 송신자 == 수신자인 경우
-        if ("other".equalsIgnoreCase(rocketReceiverType) && sender.getUserId().equals(receiver.getUserId())) {
-            throw new IllegalArgumentException("다른 사람에게 보내는 로켓에서 수신자와 송신자가 같을 수 없습니다.");
-        }
 
         // 나에게 보내는 로켓인데, 송신자 != 수신자인 경우
         if ("self".equalsIgnoreCase(rocketReceiverType) && !sender.getUserId().equals(receiver.getUserId())) {
@@ -114,6 +106,14 @@ public class RocketService {
                 .isDeleted(false)
                 .build();
         chestRepository.save(chest);
+
+        // 보낸 로켓 관리 엔티티 저장
+        SentChestEntity rocketSent = SentChestEntity.builder()
+                .rocket(rocket)
+                .sender(sender)
+                .isDeleted(false)
+                .build();
+        sentChestRepository.save(rocketSent);
     }
 
     // 로켓 임시저장
